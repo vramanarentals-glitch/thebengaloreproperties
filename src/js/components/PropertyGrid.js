@@ -44,43 +44,42 @@ export function renderPropertyGrid() {
     const waLink = `https://wa.me/${c.whatsapp.replace('+', '')}?text=${encodeURIComponent(waMessage)}`;
 
     gridRoot.innerHTML = `
-      <div class="empty-state" style="background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); border: 2px solid rgba(245, 158, 11, 0.4); border-radius: 20px; padding: 2.5rem 1.5rem; text-align: center; max-width: 720px; margin: 2rem auto; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-        <div style="width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(239,68,68,0.2)); border: 2px solid #f59e0b; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; font-size: 2rem; color: #f59e0b;">
+      <div class="empty-state-card">
+        <div class="empty-state-icon">
           <i class="fa-solid fa-map-location-dot"></i>
         </div>
 
-        <h3 class="font-heading" style="font-size: 1.5rem; color: #ffffff; margin-bottom: 0.5rem; line-height: 1.3;">
-          No Active Properties Listed for <span style="color: #f59e0b; font-weight: 800;">"${displayLocation}"</span>
+        <h3 class="font-heading empty-state-title">
+          No Active Properties Listed for <span class="empty-state-highlight">"${displayLocation}"</span>
         </h3>
         
-        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 1.25rem; border-radius: 14px; margin: 1.25rem 0; text-align: center;">
-          <div style="font-size: 1.2rem; font-weight: 800; color: #10b981; margin-bottom: 0.35rem;">
+        <div class="empty-state-contact-box">
+          <div class="empty-state-contact-title">
             <i class="fa-solid fa-handshake-angle"></i> Please Contact Us Directly!
           </div>
-          <div style="font-size: 0.92rem; color: #cbd5e1; line-height: 1.5;">
+          <div class="empty-state-contact-desc">
             We have unlisted & upcoming residential flats, office spaces, and godowns available in <strong>${displayLocation}</strong>. Contact Proprietor <strong>${c.proprietor} (${c.phone})</strong> on WhatsApp or phone to get instant property options!
           </div>
         </div>
 
-        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 1.5rem;">
+        <div class="empty-state-actions">
           <!-- WhatsApp Direct Button -->
           <a 
             href="${waLink}" 
             target="_blank" 
-            class="nav-btn" 
-            style="background: #25D366; color: #ffffff; font-weight: 800; font-size: 0.95rem; padding: 0.85rem 1.5rem; border-radius: 12px; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 0.6rem; box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);"
+            class="nav-btn empty-state-btn empty-state-wa-btn" 
           >
-            <i class="fa-brands fa-whatsapp" style="font-size: 1.4rem;"></i> Chat on WhatsApp for "${displayLocation}"
+            <i class="fa-brands fa-whatsapp empty-state-wa-icon"></i> <span>Chat on WhatsApp for "${displayLocation}"</span>
           </a>
 
           <!-- Book a Call Button -->
-          <button id="btn-empty-book-call" class="nav-btn nav-btn-primary" style="padding: 0.85rem 1.25rem; font-weight: 800; border-radius: 12px;">
-            <i class="fa-solid fa-phone-volume"></i> Book a Call
+          <button id="btn-empty-book-call" class="nav-btn nav-btn-primary empty-state-btn">
+            <i class="fa-solid fa-phone-volume"></i> <span>Book a Call</span>
           </button>
 
           <!-- Reset Filters Button -->
-          <button id="btn-empty-reset" class="nav-btn" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.85rem 1.25rem; border-radius: 12px;">
-            <i class="fa-solid fa-rotate-left"></i> View All Properties
+          <button id="btn-empty-reset" class="nav-btn empty-state-btn empty-state-reset-btn">
+            <i class="fa-solid fa-rotate-left"></i> <span>View All Properties</span>
           </button>
         </div>
       </div>
