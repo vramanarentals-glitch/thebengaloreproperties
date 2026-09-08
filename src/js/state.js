@@ -1,13 +1,4 @@
 import { PROPERTIES_DATA } from '../data/properties.js';
-import {
-  initFirebase,
-  subscribeCloudProperties,
-  saveCloudProperty,
-  deleteCloudProperty,
-  subscribeCloudLeads,
-  saveCloudLead,
-  deleteCloudLead
-} from './firebase.js';
 
 class AppState {
   constructor() {
@@ -113,34 +104,6 @@ class AppState {
     ];
 
     this.listeners = [];
-
-    // Real-time Firebase Cloud Sync Initialization
-    this.isCloudSynced = true;
-    this.cloudProvider = 'Firebase Firestore';
-    this.initCloudSync();
-  }
-
-  initCloudSync() {
-    console.log('🔥 Initializing Firebase Firestore Real-Time Cloud Sync...');
-    initFirebase();
-
-    // Subscribe to Firebase Firestore Real-time WebSockets
-    this.unsubscribeFbProps = subscribeCloudProperties((fbProps) => {
-      if (fbProps && Array.isArray(fbProps) && fbProps.length > 0) {
-        console.log(`🔥 Real-Time Sync: Received ${fbProps.length} properties from Firebase Firestore.`);
-        this.allProperties = fbProps;
-        this.saveProperties();
-        this.notify();
-      }
-    });
-
-    this.unsubscribeFbLeads = subscribeCloudLeads((fbLeads) => {
-      if (fbLeads && Array.isArray(fbLeads) && fbLeads.length > 0) {
-        this.leads = fbLeads;
-        localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
-        this.notify();
-      }
-    });
   }
 
   // Auth Methods: Email & Password, Google OAuth
@@ -281,7 +244,7 @@ class AppState {
     this.notify();
   }
 
-  async addProperty(newProp) {
+  addProperty(newProp) {
     const propertyWithId = {
       id: `prop-custom-${Date.now()}`,
       isVerified: true,
@@ -294,15 +257,6 @@ class AppState {
     };
     this.allProperties.unshift(propertyWithId);
     this.saveProperties();
-    this.notify();
-
-    await saveCloudProperty(propertyWithId);
-  }
-
-  async forceRefreshFromCloud() {
-    console.log('🔄 Clearing local cache and fetching fresh properties from Neon Cloud DB...');
-    localStorage.removeItem('tbp_properties');
-    await this.syncWithNeon();
     this.notify();
   }
 
@@ -516,45 +470,37 @@ class AppState {
     this.notify();
   }
 
-  async deleteProperty(propertyId) {
+  deleteProperty(propertyId) {
     this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
     this.saveProperties();
     this.notify();
-
-    await deleteCloudProperty(propertyId);
   }
 
-  async togglePropertyFlag(propertyId, flagName) {
+  togglePropertyFlag(propertyId, flagName) {
     const prop = this.allProperties.find(p => p.id === propertyId);
     if (prop) {
       prop[flagName] = !prop[flagName];
       this.saveProperties();
       this.notify();
-
-      await saveCloudProperty(prop);
     }
   }
 
-  async updateLeadStatus(leadId, newStatus) {
+  updateLeadStatus(leadId, newStatus) {
     const lead = this.leads.find(l => l.id === leadId);
     if (lead) {
       lead.status = newStatus;
       localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
       this.notify();
-
-      await saveCloudLead(lead);
     }
   }
 
-  async deleteLead(leadId) {
+  deleteLead(leadId) {
     this.leads = this.leads.filter(l => l.id !== leadId);
     localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
     this.notify();
-
-    await deleteCloudLead(leadId);
   }
 
-  async addLead(newLead) {
+  addLead(newLead) {
     const leadObj = {
       id: `lead-${Date.now()}`,
       date: new Date().toISOString().split('T')[0],
@@ -564,8 +510,6 @@ class AppState {
     this.leads.unshift(leadObj);
     localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
     this.notify();
-
-    await saveCloudLead(leadObj);
   }
 
   updateContactInfo(newInfo) {
