@@ -7,6 +7,15 @@ import {
   saveNeonLead, 
   deleteNeonLead 
 } from './neon.js';
+import {
+  initFirebase,
+  subscribeCloudProperties,
+  saveCloudProperty,
+  deleteCloudProperty,
+  subscribeCloudLeads,
+  saveCloudLead,
+  deleteCloudLead
+} from './firebase.js';
 
 class AppState {
   constructor() {
@@ -113,21 +122,40 @@ class AppState {
 
     this.listeners = [];
 
-    // Real-time Neon PostgreSQL & Firebase Cloud Sync Initialization
+    // Real-time Firebase & Neon PostgreSQL Cloud Sync Initialization
     this.isCloudSynced = true;
-    this.cloudProvider = 'Neon PostgreSQL';
+    this.cloudProvider = 'Firebase Firestore & Neon DB';
     this.initCloudSync();
   }
 
   async initCloudSync() {
-    console.log('⚡ Initializing Neon PostgreSQL database sync...');
+    console.log('🔥 Initializing Firebase Firestore Real-Time Cloud Sync...');
+    initFirebase();
+
+    // 1. Subscribe to Firebase Firestore Real-time WebSockets
+    this.unsubscribeFbProps = subscribeCloudProperties((fbProps) => {
+      if (fbProps && Array.isArray(fbProps) && fbProps.length > 0) {
+        console.log(`🔥 Real-Time Sync: Received ${fbProps.length} properties from Firebase Firestore.`);
+        this.allProperties = fbProps;
+        this.saveProperties();
+        this.notify();
+      }
+    });
+
+    this.unsubscribeFbLeads = subscribeCloudLeads((fbLeads) => {
+      if (fbLeads && Array.isArray(fbLeads) && fbLeads.length > 0) {
+        this.leads = fbLeads;
+        localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
+        this.notify();
+      }
+    });
+
+    // 2. Also perform Neon PostgreSQL sync in background
     await this.syncWithNeon();
-    
-    // Auto-poll Neon DB every 5 seconds so changes on Device A automatically show on Device B!
     if (!this.pollTimer) {
       this.pollTimer = setInterval(() => {
         this.syncWithNeon(true);
-      }, 5000);
+      }, 10000);
     }
   }
 
@@ -313,6 +341,8 @@ class AppState {
     this.saveProperties();
     this.notify();
 
+    // Save to both Firebase Firestore & Neon PostgreSQL
+    await saveCloudProperty(propertyWithId);
     await saveNeonProperty(propertyWithId);
     await this.syncWithNeon(true);
   }
@@ -539,6 +569,7 @@ class AppState {
     this.saveProperties();
     this.notify();
 
+    await deleteCloudProperty(propertyId);
     await deleteNeonProperty(propertyId);
     await this.syncWithNeon(true);
   }
@@ -550,6 +581,7 @@ class AppState {
       this.saveProperties();
       this.notify();
 
+      await saveCloudProperty(prop);
       await saveNeonProperty(prop);
       await this.syncWithNeon(true);
     }
@@ -562,6 +594,7 @@ class AppState {
       localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
       this.notify();
 
+      await saveCloudLead(lead);
       await saveNeonLead(lead);
       await this.syncWithNeon(true);
     }
@@ -572,6 +605,7 @@ class AppState {
     localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
     this.notify();
 
+    await deleteCloudLead(leadId);
     await deleteNeonLead(leadId);
     await this.syncWithNeon(true);
   }
@@ -587,6 +621,7 @@ class AppState {
     localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
     this.notify();
 
+    await saveCloudLead(leadObj);
     await saveNeonLead(leadObj);
     await this.syncWithNeon(true);
   }
