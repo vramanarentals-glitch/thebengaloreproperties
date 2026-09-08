@@ -9,45 +9,40 @@ import { renderAuthModal } from './js/components/AuthModal.js';
 import { renderAdminPortal } from './js/components/AdminPortal.js';
 import { renderFooter } from './js/components/Footer.js';
 
-function renderApp() {
-  // Save active input focus and cursor position before re-render
-  const activeEl = document.activeElement;
-  let activeId = null;
-  let selStart = 0;
-  let selEnd = 0;
+let isInitialized = false;
 
-  if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') && activeEl.id) {
-    activeId = activeEl.id;
-    try {
-      selStart = activeEl.selectionStart;
-      selEnd = activeEl.selectionEnd;
-    } catch (e) {
-      // Ignore if input type doesn't support selection range
-    }
+function renderApp() {
+  const activeEl = document.activeElement;
+  const isTypingInSearch = activeEl && (
+    activeEl.id === 'hero-place-search-input' || 
+    activeEl.id === 'filter-search-input'
+  );
+
+  // Always render property grid results on state change
+  renderPropertyGrid();
+
+  // If user is currently typing inside search inputs, avoid destroying active input DOM elements
+  if (!isTypingInSearch || !isInitialized) {
+    renderHeader();
+    renderHero();
+    renderFilters();
+    renderFooter();
   }
 
-  renderHeader();
-  renderHero();
-  renderFilters();
-  renderPropertyGrid();
+  // Always handle active modals & admin portal renders
   renderPropertyModal();
   renderListPropertyModal();
   renderAuthModal();
   renderAdminPortal();
-  renderFooter();
 
-  // Restore focus and cursor selection position after re-render
-  if (activeId) {
-    const elToFocus = document.getElementById(activeId);
-    if (elToFocus) {
-      elToFocus.focus();
-      try {
-        elToFocus.setSelectionRange(selStart, selEnd);
-      } catch (e) {
-        // Ignore if input type doesn't support selection range
-      }
-    }
+  // Keep focus on active element if it was set
+  if (activeEl && document.body.contains(activeEl)) {
+    try {
+      activeEl.focus();
+    } catch (e) {}
   }
+
+  isInitialized = true;
 }
 
 function checkAdminRoute() {
@@ -72,7 +67,7 @@ function init() {
   window.addEventListener('popstate', checkAdminRoute);
   window.addEventListener('hashchange', checkAdminRoute);
 
-  // Render reactive components
+  // Render reactive components initial
   renderApp();
 
   // Floating call button listener

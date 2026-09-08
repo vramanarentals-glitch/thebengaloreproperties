@@ -55,14 +55,9 @@ class AppState {
     const savedRegUsers = localStorage.getItem('tbp_registered_users');
     this.registeredUsers = savedRegUsers ? JSON.parse(savedRegUsers) : [];
 
-    this.authStep = 'input-step'; // 'input-step' | 'otp-verify'
-    this.authTab = 'email-pass'; // 'email-pass' | 'whatsapp'
+    this.authTab = 'email-pass'; // 'email-pass'
     this.userAuthMode = 'signin'; // 'signin' | 'register'
     this.pendingEmail = '';
-    this.pendingPhone = '';
-    this.generatedOTP = '';
-    this.isSendingOTP = false;
-    this.otpSentRealStatus = false;
 
     // Active Modals state
     this.activeModal = null; // null, 'property-details', 'schedule-visit', 'list-property', 'contact-us', 'auth-signin', 'admin-portal'
@@ -111,106 +106,7 @@ class AppState {
     this.listeners = [];
   }
 
-  // Auth Methods: WhatsApp OTP & EmailJS Gmail OTP & Google OAuth
-  sendWhatsAppOTP(phone) {
-    const rawDigits = phone.replace(/\D/g, '');
-    const cleanPhone = rawDigits.length === 10 ? `91${rawDigits}` : rawDigits;
-    
-    this.pendingPhone = phone;
-    this.pendingEmail = '';
-    this.authTab = 'whatsapp';
-    this.generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    this.authStep = 'otp-verify';
-    this.notify();
-
-    // Trigger WhatsApp web / app link with prefilled OTP message
-    const msg = `🔐 Your Verification OTP for The Bangalore Properties is: ${this.generatedOTP}\n\nUse this code to complete your login. Valid for 10 minutes.`;
-    const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
-    window.open(waUrl, '_blank');
-
-    return this.generatedOTP;
-  }
-
-  async sendEmailOTP(email) {
-    this.pendingEmail = email;
-    this.pendingPhone = '';
-    this.authTab = 'email';
-    // Generate a secure 6-digit OTP
-    this.generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    this.authStep = 'otp-verify';
-    this.isSendingOTP = true;
-    this.otpSentRealStatus = false;
-    this.notify();
-
-    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_gmail_otp';
-    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_otp_code';
-    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-
-    try {
-      if (window.emailjs && publicKey) {
-        window.emailjs.init(publicKey);
-        await window.emailjs.send(serviceId, templateId, {
-          to_email: email,
-          otp_code: this.generatedOTP,
-          site_name: 'The Bangalore Properties'
-        });
-        this.otpSentRealStatus = true;
-      } else {
-        // Attempt direct EmailJS REST API dispatch
-        const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            service_id: serviceId,
-            template_id: templateId,
-            user_id: publicKey || 'public_key_demo',
-            template_params: {
-              to_email: email,
-              otp_code: this.generatedOTP,
-              site_name: 'The Bangalore Properties'
-            }
-          })
-        });
-        this.otpSentRealStatus = res.ok;
-      }
-    } catch (err) {
-      console.warn('EmailJS sending info:', err);
-      this.otpSentRealStatus = false;
-    } finally {
-      this.isSendingOTP = false;
-      this.notify();
-    }
-
-    return this.generatedOTP;
-  }
-
-  verifyOTP(enteredCode) {
-    if (enteredCode === this.generatedOTP) {
-      const identifier = this.authTab === 'whatsapp' ? this.pendingPhone : this.pendingEmail;
-      const formattedName = this.authTab === 'whatsapp' 
-        ? `Member (${this.pendingPhone})` 
-        : (this.pendingEmail.split('@')[0].charAt(0).toUpperCase() + this.pendingEmail.split('@')[0].slice(1));
-      
-      const user = {
-        id: `usr-${Date.now()}`,
-        name: formattedName,
-        email: this.pendingEmail || `${this.pendingPhone}@whatsapp.user`,
-        phone: this.pendingPhone,
-        provider: this.authTab === 'whatsapp' ? 'WhatsApp OTP' : 'Gmail OTP',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${formattedName}`
-      };
-      this.currentUser = user;
-      localStorage.setItem('tbp_user', JSON.stringify(user));
-      this.activeModal = null;
-      this.authStep = 'input-step';
-      this.pendingEmail = '';
-      this.pendingPhone = '';
-      this.generatedOTP = '';
-      this.notify();
-      return true;
-    }
-    return false;
-  }
+  // Auth Methods: Email & Password, Google OAuth
 
   handleGoogleCredential(credentialResponse) {
     try {
@@ -230,7 +126,6 @@ class AppState {
       this.currentUser = user;
       localStorage.setItem('tbp_user', JSON.stringify(user));
       this.activeModal = null;
-      this.authStep = 'email-input';
       this.notify();
       return user;
     } catch (e) {
@@ -250,7 +145,6 @@ class AppState {
     this.currentUser = user;
     localStorage.setItem('tbp_user', JSON.stringify(user));
     this.activeModal = null;
-    this.authStep = 'email-input';
     this.notify();
     return user;
   }

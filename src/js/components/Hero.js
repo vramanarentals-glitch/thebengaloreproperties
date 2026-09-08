@@ -21,7 +21,7 @@ export function renderHero() {
         </p>
 
         <!-- Hero Quick Place Search Bar -->
-        <div class="hero-search-box-wrapper">
+        <form id="hero-search-form" class="hero-search-box-wrapper">
           <i class="fa-solid fa-magnifying-glass-location" style="color: #10b981; font-size: 1.3rem;"></i>
           <input 
             type="text" 
@@ -30,10 +30,10 @@ export function renderHero() {
             value="${state.filters.searchQuery}"
             style="flex-grow: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
           />
-          <button id="hero-place-search-btn" class="nav-btn nav-btn-primary hero-search-btn">
+          <button type="submit" id="hero-place-search-btn" class="nav-btn nav-btn-primary hero-search-btn">
             Search Place
           </button>
-        </div>
+        </form>
 
         <!-- Direct Proprietor Contact Banner -->
         <div class="hero-contact-card">
@@ -68,15 +68,16 @@ export function renderHero() {
     </section>
   `;
 
-  document.getElementById('hero-place-search-input')?.addEventListener('input', (e) => {
-    state.updateFilter('searchQuery', e.target.value);
-  });
-
-  document.getElementById('hero-place-search-btn')?.addEventListener('click', () => {
+  document.getElementById('hero-search-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
     const inputVal = document.getElementById('hero-place-search-input')?.value;
     if (inputVal !== undefined) {
       state.updateFilter('searchQuery', inputVal);
     }
+  });
+
+  document.getElementById('hero-place-search-input')?.addEventListener('input', (e) => {
+    state.updateFilter('searchQuery', e.target.value);
   });
 
   document.getElementById('hero-btn-book-call')?.addEventListener('click', () => {

@@ -97,8 +97,6 @@ export function renderPropertyGrid() {
 
   // Render Grid Cards
   gridRoot.innerHTML = state.filteredProperties.map(p => {
-    const isFav = state.isFavorite(p.id);
-
     return `
       <article class="property-card" data-id="${p.id}">
         <div class="card-image-wrapper">
@@ -110,10 +108,6 @@ export function renderPropertyGrid() {
             ${p.zeroBrokerage ? `<span class="badge badge-brokerage">0% Brokerage</span>` : ''}
             ${p.isFeatured ? `<span class="badge badge-featured">★ Featured</span>` : ''}
           </div>
-
-          <button class="fav-toggle-btn ${isFav ? 'active' : ''}" data-fav-id="${p.id}" title="${isFav ? 'Remove from Saved' : 'Save Property'}">
-            <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-          </button>
         </div>
 
         <div class="card-content">
@@ -164,13 +158,6 @@ export function renderPropertyGrid() {
   }).join('');
 
   // Attach Card Event Listeners
-  gridRoot.querySelectorAll('[data-fav-id]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.favId;
-      state.toggleFavorite(id);
-    });
-  });
 
   gridRoot.querySelectorAll('.btn-view-details').forEach(btn => {
     btn.addEventListener('click', () => {

@@ -20,7 +20,7 @@ export function renderFilters() {
     <!-- Search Place / Keyword -->
     <div class="filter-group">
       <label class="filter-label">Search Place / Keyword</label>
-      <div style="position: relative;">
+      <form id="filters-search-form" style="position: relative;">
         <input 
           type="text" 
           id="filter-search-input" 
@@ -29,7 +29,7 @@ export function renderFilters() {
           class="input-field-group"
           style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);"
         />
-      </div>
+      </form>
     </div>
 
     <!-- BHK Configuration -->
@@ -81,6 +81,14 @@ export function renderFilters() {
   // Attach Event Listeners
   document.getElementById('btn-reset-all')?.addEventListener('click', () => {
     state.resetFilters();
+  });
+
+  document.getElementById('filters-search-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const inputVal = document.getElementById('filter-search-input')?.value;
+    if (inputVal !== undefined) {
+      state.updateFilter('searchQuery', inputVal);
+    }
   });
 
   const searchInput = document.getElementById('filter-search-input');

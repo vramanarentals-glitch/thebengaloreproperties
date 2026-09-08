@@ -1,5 +1,6 @@
 import { state } from '../state.js';
 import { showToast } from './Toast.js';
+import { sanitizeHTML } from '../utils/security.js';
 
 export function renderAuthModal() {
   if (state.activeModal !== 'auth-signin') return;
@@ -7,216 +8,182 @@ export function renderAuthModal() {
   const root = document.getElementById('modal-root');
   if (!root) return;
 
-  const isEmailPassTab = state.authTab === 'email-pass';
   const isSignIn = state.userAuthMode === 'signin';
-  const isOtpStep = state.authStep === 'otp-verify';
 
   root.innerHTML = `
     <div class="modal-overlay" id="modal-backdrop">
-      <div class="modal-card" style="max-width: 480px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow-lg);">
-        <button class="modal-close-btn" id="btn-close-modal" style="top: 18px; right: 18px;">
+      <div class="modal-card" style="max-width: 460px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 24px; padding: 2.25rem; box-shadow: var(--shadow-lg); position: relative;">
+        <button class="modal-close-btn" id="btn-close-modal" style="position: absolute; top: 18px; right: 18px; background: var(--bg-input); border: 1px solid var(--border-color); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary); transition: all 0.2s ease;">
           <i class="fa-solid fa-xmark"></i>
         </button>
 
         <div style="text-align: center; margin-bottom: 1.5rem;">
-          <div style="width: 60px; height: 60px; border-radius: 18px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2)); border: 1px solid var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--accent-emerald); margin: 0 auto 1rem auto;">
-            <i class="${isEmailPassTab ? (isSignIn ? 'fa-solid fa-user-lock' : 'fa-solid fa-user-plus') : 'fa-brands fa-whatsapp'}"></i>
+          <div style="width: 64px; height: 64px; border-radius: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--accent-emerald); margin: 0 auto 1rem auto; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+            <i class="${isSignIn ? 'fa-solid fa-user-lock' : 'fa-solid fa-user-plus'}"></i>
           </div>
-          <h2 class="font-heading" style="font-size: 1.6rem; margin-bottom: 0.25rem;">
-            ${isEmailPassTab ? (isSignIn ? 'Sign In to Your Account' : 'Create New Account') : 'WhatsApp Quick Login'}
+          <h2 class="font-heading" style="font-size: 1.6rem; margin-bottom: 0.35rem; color: var(--text-primary); font-weight: 800;">
+            ${isSignIn ? 'Sign In to Bengaluru Properties' : 'Create New Account'}
           </h2>
-          <p style="font-size: 0.85rem; color: var(--text-secondary);">
-            ${isEmailPassTab ? (isSignIn ? 'Enter your email and password to sign in.' : 'Register with your email and create a password.') : 'Enter your mobile number to received verification OTP.'}
+          <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.4;">
+            ${isSignIn ? 'Enter your email and password to access your account and saved properties.' : 'Register with your email to save properties and request instant site visits.'}
           </p>
         </div>
 
-        <!-- Main Authentication Tabs: Email/Password vs WhatsApp -->
-        <div style="display: flex; background: var(--bg-input); padding: 4px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 1.25rem;">
-          <button id="tab-email-pass" style="flex: 1; padding: 0.6rem; border-radius: 10px; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; ${isEmailPassTab ? 'background: var(--accent-emerald); color: #ffffff; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);' : 'background: transparent; color: var(--text-muted);'}">
-            <i class="fa-solid fa-envelope"></i> Email & Password
+        <!-- Mode Toggle: Sign In vs Create Account -->
+        <div style="display: flex; background: var(--bg-input); padding: 4px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+          <button id="btn-switch-signin" style="flex: 1; padding: 0.65rem; border-radius: 10px; border: none; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; ${isSignIn ? 'background: var(--accent-emerald); color: #ffffff; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);' : 'background: transparent; color: var(--text-muted);'}">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In
           </button>
-          <button id="tab-whatsapp" style="flex: 1; padding: 0.6rem; border-radius: 10px; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; ${!isEmailPassTab ? 'background: #25D366; color: #ffffff; box-shadow: 0 2px 6px rgba(37, 211, 102, 0.4);' : 'background: transparent; color: var(--text-muted);'}">
-            <i class="fa-brands fa-whatsapp" style="font-size: 1.1rem;"></i> WhatsApp OTP
+          <button id="btn-switch-register" style="flex: 1; padding: 0.65rem; border-radius: 10px; border: none; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; ${!isSignIn ? 'background: var(--accent-emerald); color: #ffffff; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);' : 'background: transparent; color: var(--text-muted);'}">
+            <i class="fa-solid fa-user-plus"></i> Create Account
           </button>
         </div>
 
-        ${isEmailPassTab ? `
-          <!-- Sub-toggle for Sign In vs Register -->
-          <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-            <button id="btn-switch-signin" style="background: none; border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; color: ${isSignIn ? 'var(--accent-emerald)' : 'var(--text-muted)'}; border-bottom: 2px solid ${isSignIn ? 'var(--accent-emerald)' : 'transparent'}; padding-bottom: 4px;">
-              <i class="fa-solid fa-right-to-bracket"></i> Sign In
-            </button>
-            <button id="btn-switch-register" style="background: none; border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; color: ${!isSignIn ? 'var(--accent-emerald)' : 'var(--text-muted)'}; border-bottom: 2px solid ${!isSignIn ? 'var(--accent-emerald)' : 'transparent'}; padding-bottom: 4px;">
-              <i class="fa-solid fa-user-plus"></i> Create Account
-            </button>
-          </div>
-
-          ${isSignIn ? `
-            <!-- Sign In Form -->
-            <form id="form-user-login" style="display: flex; flex-direction: column; gap: 1rem;">
-              <div class="input-field-group" style="text-align: left;">
-                <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
-                  Email Address
-                </label>
+        ${isSignIn ? `
+          <!-- Sign In Form -->
+          <form id="form-user-login" style="display: flex; flex-direction: column; gap: 1.1rem;">
+            <div class="input-field-group" style="text-align: left;">
+              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">
+                Email Address
+              </label>
+              <div style="position: relative;">
+                <i class="fa-solid fa-envelope" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                 <input 
                   type="email" 
                   id="user-login-email" 
-                  placeholder="Enter your email" 
+                  placeholder="name@example.com" 
                   required 
-                  style="width: 100%; padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;"
+                  autocomplete="email"
+                  style="width: 100%; padding: 0.85rem 0.85rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
                 />
               </div>
+            </div>
 
-              <div class="input-field-group" style="text-align: left;">
-                <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
-                  Password
-                </label>
+            <div class="input-field-group" style="text-align: left;">
+              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">
+                Password
+              </label>
+              <div style="position: relative;">
+                <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                 <input 
                   type="password" 
                   id="user-login-pass" 
-                  placeholder="Enter your password" 
+                  placeholder="••••••••" 
                   required 
-                  style="width: 100%; padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;"
+                  autocomplete="current-password"
+                  style="width: 100%; padding: 0.85rem 0.85rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
                 />
               </div>
+            </div>
 
-              <button type="submit" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem; margin-top: 0.25rem;">
-                <i class="fa-solid fa-right-to-bracket"></i> Sign In
-              </button>
-            </form>
-          ` : `
-            <!-- Register / Create Account Form -->
-            <form id="form-user-register" style="display: flex; flex-direction: column; gap: 1rem;">
-              <div class="input-field-group" style="text-align: left;">
-                <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
-                  Full Name
-                </label>
+            <button type="submit" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.95rem; font-size: 1rem; margin-top: 0.35rem; border-radius: 12px; font-weight: 700; gap: 0.6rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+              <i class="fa-solid fa-right-to-bracket"></i> Secure Sign In
+            </button>
+          </form>
+        ` : `
+          <!-- Register / Create Account Form -->
+          <form id="form-user-register" style="display: flex; flex-direction: column; gap: 1.1rem;">
+            <div class="input-field-group" style="text-align: left;">
+              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">
+                Full Name
+              </label>
+              <div style="position: relative;">
+                <i class="fa-solid fa-user" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                 <input 
                   type="text" 
                   id="user-reg-name" 
                   placeholder="Enter your full name" 
                   required 
-                  style="width: 100%; padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;"
+                  style="width: 100%; padding: 0.85rem 0.85rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
                 />
               </div>
+            </div>
 
-              <div class="input-field-group" style="text-align: left;">
-                <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
-                  Email Address
-                </label>
+            <div class="input-field-group" style="text-align: left;">
+              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">
+                Email Address
+              </label>
+              <div style="position: relative;">
+                <i class="fa-solid fa-envelope" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                 <input 
                   type="email" 
                   id="user-reg-email" 
-                  placeholder="Enter your email" 
+                  placeholder="name@example.com" 
                   required 
-                  style="width: 100%; padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;"
+                  autocomplete="email"
+                  style="width: 100%; padding: 0.85rem 0.85rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
                 />
               </div>
+            </div>
 
-              <div class="input-field-group" style="text-align: left;">
-                <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
-                  Create Password
-                </label>
+            <div class="input-field-group" style="text-align: left;">
+              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">
+                Create Password
+              </label>
+              <div style="position: relative;">
+                <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                 <input 
                   type="password" 
                   id="user-reg-pass" 
-                  placeholder="Create a password" 
+                  placeholder="Minimum 6 characters" 
                   required 
                   minlength="6"
-                  style="width: 100%; padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;"
+                  autocomplete="new-password"
+                  style="width: 100%; padding: 0.85rem 0.85rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
                 />
               </div>
+            </div>
 
-              <div class="input-field-group" style="text-align: left;">
-                <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
-                  Confirm Password
-                </label>
+            <div class="input-field-group" style="text-align: left;">
+              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">
+                Confirm Password
+              </label>
+              <div style="position: relative;">
+                <i class="fa-solid fa-lock-keyhole" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                 <input 
                   type="password" 
                   id="user-reg-confirm" 
-                  placeholder="Confirm your password" 
+                  placeholder="Re-enter password" 
                   required 
                   minlength="6"
-                  style="width: 100%; padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;"
+                  autocomplete="new-password"
+                  style="width: 100%; padding: 0.85rem 0.85rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
                 />
               </div>
+            </div>
 
-              <button type="submit" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem; margin-top: 0.25rem;">
-                <i class="fa-solid fa-user-plus"></i> Create Account & Sign In
-              </button>
-            </form>
-          `}
-        ` : `
-          ${!isOtpStep ? `
-            <!-- WhatsApp Mobile Number Form -->
-            <form id="form-whatsapp-otp" style="display: flex; flex-direction: column; gap: 1.25rem;">
-              <div class="input-field-group">
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">
-                  <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> WhatsApp Mobile Number
-                </label>
-                <div style="display: flex; gap: 0.5rem;">
-                  <span style="padding: 0.8rem 0.9rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
-                    🇮🇳 +91
-                  </span>
-                  <input 
-                    type="tel" 
-                    id="auth-phone-input" 
-                    placeholder="98765 43210" 
-                    required 
-                    pattern="[0-9]{10}"
-                    maxlength="10"
-                    style="flex: 1; padding: 0.8rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.5px;"
-                  />
-                </div>
-              </div>
-
-              <button type="submit" class="nav-btn" style="width: 100%; justify-content: center; padding: 0.95rem; font-size: 1rem; background: #25D366; color: #ffffff; border-radius: 12px; font-weight: 700; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);">
-                <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i> Send OTP on WhatsApp
-              </button>
-            </form>
-          ` : `
-            <!-- OTP Verification Form -->
-            <form id="form-verify-otp" style="display: flex; flex-direction: column; gap: 1.25rem;">
-              <div>
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; display: block; text-align: center;">
-                  Enter 6-Digit Code
-                </label>
-                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 0.75rem;">
-                  ${[0, 1, 2, 3, 4, 5].map(idx => `
-                    <input 
-                      type="text" 
-                      class="otp-digit-input" 
-                      data-idx="${idx}" 
-                      maxlength="1" 
-                      pattern="[0-9]*" 
-                      inputmode="numeric" 
-                      style="width: 45px; height: 50px; text-align: center; font-size: 1.4rem; font-weight: 800; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: #25D366;" 
-                    />
-                  `).join('')}
-                </div>
-              </div>
-
-              <button type="submit" class="nav-btn" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem; background: #25D366; color: #ffffff; border-radius: 12px; font-weight: 700;">
-                <i class="fa-solid fa-circle-check"></i> Verify OTP & Sign In
-              </button>
-            </form>
-          `}
+            <button type="submit" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.95rem; font-size: 1rem; margin-top: 0.35rem; border-radius: 12px; font-weight: 700; gap: 0.6rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+              <i class="fa-solid fa-user-plus"></i> Register & Sign In
+            </button>
+          </form>
         `}
+
+        <div style="display: flex; align-items: center; margin: 1.25rem 0; gap: 1rem;">
+          <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">OR</span>
+          <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+        </div>
+
+        <!-- Google One-Tap / OAuth Sign In Button -->
+        <button id="btn-google-login" style="width: 100%; padding: 0.85rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <!-- Security Badge Notice -->
+        <div style="margin-top: 1.5rem; text-align: center; font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+          <i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald);"></i> 256-Bit SSL Encrypted & Secure Authentication
+        </div>
       </div>
     </div>
   `;
 
   // Attach Event Listeners
-  document.getElementById('tab-email-pass')?.addEventListener('click', () => {
-    state.authTab = 'email-pass';
-    state.notify();
-  });
-
-  document.getElementById('tab-whatsapp')?.addEventListener('click', () => {
-    state.authTab = 'whatsapp';
-    state.notify();
-  });
-
   document.getElementById('btn-switch-signin')?.addEventListener('click', () => {
     state.userAuthMode = 'signin';
     state.notify();
@@ -230,8 +197,12 @@ export function renderAuthModal() {
   // User Sign In Submit
   document.getElementById('form-user-login')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const email = document.getElementById('user-login-email')?.value || '';
-    const pass = document.getElementById('user-login-pass')?.value || '';
+    const emailRaw = document.getElementById('user-login-email')?.value || '';
+    const passRaw = document.getElementById('user-login-pass')?.value || '';
+    
+    const email = sanitizeHTML(emailRaw.trim());
+    const pass = passRaw.trim();
+
     const res = state.loginUser(email, pass);
     if (res.success) {
       if (res.isAdmin) {
@@ -247,10 +218,15 @@ export function renderAuthModal() {
   // User Registration Submit
   document.getElementById('form-user-register')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = document.getElementById('user-reg-name')?.value || '';
-    const email = document.getElementById('user-reg-email')?.value || '';
-    const pass = document.getElementById('user-reg-pass')?.value || '';
-    const confirm = document.getElementById('user-reg-confirm')?.value || '';
+    const nameRaw = document.getElementById('user-reg-name')?.value || '';
+    const emailRaw = document.getElementById('user-reg-email')?.value || '';
+    const passRaw = document.getElementById('user-reg-pass')?.value || '';
+    const confirmRaw = document.getElementById('user-reg-confirm')?.value || '';
+
+    const name = sanitizeHTML(nameRaw.trim());
+    const email = sanitizeHTML(emailRaw.trim());
+    const pass = passRaw.trim();
+    const confirm = confirmRaw.trim();
 
     if (pass !== confirm) {
       showToast('⚠️ Passwords do not match! Please check again.');
@@ -265,64 +241,20 @@ export function renderAuthModal() {
     }
   });
 
-  // WhatsApp OTP Submit
-  document.getElementById('form-whatsapp-otp')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const phoneInput = document.getElementById('auth-phone-input');
-    const phone = phoneInput ? phoneInput.value.trim() : '';
-
-    if (!phone || phone.length !== 10) {
-      showToast('⚠️ Please enter a valid 10-digit mobile number.');
-      return;
-    }
-
-    const otp = state.sendWhatsAppOTP(phone);
-    showToast(`💬 WhatsApp opening with verification OTP: ${otp}`);
-  });
-
-  // OTP Digit auto-advance & paste handler
-  const otpInputs = root.querySelectorAll('.otp-digit-input');
-  otpInputs.forEach((input, index) => {
-    input.addEventListener('input', (e) => {
-      const val = e.target.value;
-      if (val && index < otpInputs.length - 1) {
-        otpInputs[index + 1].focus();
-      }
-    });
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' && !e.target.value && index > 0) {
-        otpInputs[index - 1].focus();
-      }
-    });
-  });
-
-  // Verify OTP Form Submit
-  document.getElementById('form-verify-otp')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const enteredCode = Array.from(root.querySelectorAll('.otp-digit-input')).map(i => i.value.trim()).join('');
-    if (enteredCode.length !== 6) {
-      showToast('⚠️ Please enter all 6 digits of the OTP code.');
-      return;
-    }
-    const verified = state.verifyOTP(enteredCode);
-    if (verified) {
-      showToast('🎉 Signed in successfully!');
-    } else {
-      showToast('❌ Invalid verification OTP! Please check again.');
-    }
+  // Google Login Submit Handler
+  document.getElementById('btn-google-login')?.addEventListener('click', () => {
+    state.loginWithGoogle();
+    showToast('🎉 Signed in with Google Account successfully!');
   });
 
   // Modal Close Listeners
   document.getElementById('btn-close-modal')?.addEventListener('click', () => {
     state.closeModal();
-    state.authStep = 'input-step';
   });
 
   document.getElementById('modal-backdrop')?.addEventListener('click', (e) => {
     if (e.target.id === 'modal-backdrop') {
       state.closeModal();
-      state.authStep = 'input-step';
     }
   });
 }

@@ -10,7 +10,7 @@
   --bg-card-hover: rgba(31, 41, 55, 0.85);
   --bg-glass: rgba(255, 255, 255, 0.04);
   --bg-input: rgba(15, 23, 42, 0.8);
-  
+
   --border-color: rgba(255, 255, 255, 0.08);
   --border-glow: rgba(16, 185, 129, 0.3);
   --border-accent: rgba(99, 102, 241, 0.3);
@@ -76,7 +76,8 @@
   -webkit-font-smoothing: antialiased;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
@@ -97,7 +98,13 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-h1, h2, h3, h4, h5, h6, .font-heading {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-heading {
   font-family: 'Outfit', sans-serif;
   letter-spacing: -0.02em;
 }
@@ -118,9 +125,11 @@ button {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-main);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--text-muted);
   border-radius: 4px;
@@ -242,7 +251,7 @@ button {
   position: relative;
   padding: 4rem 2rem 3rem;
   background: radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.12), transparent 70%),
-              radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.1), transparent 60%);
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.1), transparent 60%);
   border-bottom: 1px solid var(--border-color);
   text-align: center;
 }
@@ -323,7 +332,8 @@ button {
   gap: 0.35rem;
 }
 
-.search-input, .search-select {
+.search-input,
+.search-select {
   width: 100%;
   background: transparent;
   border: none;
@@ -365,7 +375,7 @@ button {
   border: 2px solid var(--border-glow);
   padding: 0.5rem 0.5rem 0.5rem 1.25rem;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   align-items: center;
   max-width: 680px;
   width: 100%;
@@ -380,8 +390,8 @@ button {
 }
 
 .hero-contact-card {
-  background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,41,59,0.9));
-  border: 1px solid rgba(245,158,11,0.5);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+  border: 1px solid rgba(245, 158, 11, 0.5);
   padding: 1.25rem 1.5rem;
   border-radius: 16px;
   display: flex;
@@ -389,7 +399,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   width: 100%;
 }
 
@@ -847,7 +857,7 @@ button {
 
 /* Custom Empty Search State Card */
 .empty-state-card {
-  background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95));
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
   border: 2px solid rgba(245, 158, 11, 0.4);
   border-radius: 20px;
   padding: 2.5rem 1.5rem;
@@ -855,7 +865,7 @@ button {
   max-width: 720px;
   width: 100%;
   margin: 2rem auto;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
   box-sizing: border-box;
   overflow: hidden;
   grid-column: 1 / -1;
@@ -865,7 +875,7 @@ button {
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(239,68,68,0.2));
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.2));
   border: 2px solid #f59e0b;
   display: flex;
   align-items: center;
@@ -960,7 +970,7 @@ button {
 }
 
 .empty-state-reset-btn {
-  background: rgba(255,255,255,0.08) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
   border: 1px solid var(--border-color) !important;
   color: var(--text-secondary) !important;
 }
@@ -1001,7 +1011,8 @@ button {
 /* ==========================================================================
    NEIGHBORHOOD GUIDE & CALCULATOR SECTION
    ========================================================================== */
-.guide-section, .calculator-section {
+.guide-section,
+.calculator-section {
   max-width: 1400px;
   margin: 0 auto 3rem;
   padding: 0 2rem;
@@ -1271,18 +1282,37 @@ footer {
 
 /* KEYFRAMES */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(50px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* ==========================================================================
@@ -1295,14 +1325,17 @@ footer {
     width: 100%;
     max-width: 100%;
   }
+
   .layout-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
+
   .filters-sidebar {
     position: static;
     width: 100%;
   }
+
   .calc-grid {
     grid-template-columns: 1fr;
   }
@@ -1341,11 +1374,13 @@ footer {
     white-space: nowrap;
     padding: 0.2rem 0.1rem 0.4rem;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   .header-actions::-webkit-scrollbar {
-    display: none; /* Hide scrollbar for clean app design */
+    display: none;
+    /* Hide scrollbar for clean app design */
   }
 
   .nav-btn {
@@ -1524,7 +1559,8 @@ footer {
   transition: background 0.15s ease;
 }
 
-.autocomplete-item:hover, .autocomplete-item.selected {
+.autocomplete-item:hover,
+.autocomplete-item.selected {
   background: var(--accent-emerald-light);
   color: var(--accent-emerald);
 }
@@ -1706,26 +1742,35 @@ footer {
   text-decoration: underline;
 }
 
-/* Floating Quick Call Booking Button */
+/* Floating Quick Call Booking Button (Positioned higher up above Netlify toolbar) */
 .floating-call-btn {
   position: fixed;
-  bottom: 24px;
+  bottom: 180px;
   right: 24px;
-  z-index: 999;
+  z-index: 9999;
   background: linear-gradient(135deg, #10b981, #059669);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.85rem 1.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 0.9rem 1.5rem;
   border-radius: 50px;
   font-weight: 800;
-  font-size: 0.95rem;
-  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5);
+  font-size: 1rem;
+  box-shadow: 0 12px 28px rgba(16, 185, 129, 0.55);
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: pulseGlow 2.5s infinite;
+}
+
+@media (max-width: 768px) {
+  .floating-call-btn {
+    bottom: 150px;
+    right: 16px;
+    padding: 0.8rem 1.25rem;
+    font-size: 0.9rem;
+  }
 }
 
 .floating-call-btn:hover {
@@ -1737,9 +1782,11 @@ footer {
   0% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
   }
+
   70% {
     box-shadow: 0 0 0 16px rgba(16, 185, 129, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
   }
@@ -1979,20 +2026,45 @@ footer {
   font-size: 1.1rem;
 }
 
-.kpi-emerald .kpi-value { color: var(--accent-emerald); }
-.kpi-emerald .kpi-icon { color: var(--accent-emerald); }
+.kpi-emerald .kpi-value {
+  color: var(--accent-emerald);
+}
 
-.kpi-amber .kpi-value { color: #f59e0b; }
-.kpi-amber .kpi-icon { color: #f59e0b; }
+.kpi-emerald .kpi-icon {
+  color: var(--accent-emerald);
+}
 
-.kpi-blue .kpi-value { color: #3b82f6; }
-.kpi-blue .kpi-icon { color: #3b82f6; }
+.kpi-amber .kpi-value {
+  color: #f59e0b;
+}
 
-.kpi-pink .kpi-value { color: #ec4899; }
-.kpi-pink .kpi-icon { color: #ec4899; }
+.kpi-amber .kpi-icon {
+  color: #f59e0b;
+}
 
-.kpi-purple .kpi-value { color: #8b5cf6; }
-.kpi-purple .kpi-icon { color: #8b5cf6; }
+.kpi-blue .kpi-value {
+  color: #3b82f6;
+}
+
+.kpi-blue .kpi-icon {
+  color: #3b82f6;
+}
+
+.kpi-pink .kpi-value {
+  color: #ec4899;
+}
+
+.kpi-pink .kpi-icon {
+  color: #ec4899;
+}
+
+.kpi-purple .kpi-value {
+  color: #8b5cf6;
+}
+
+.kpi-purple .kpi-icon {
+  color: #8b5cf6;
+}
 
 .kpi-value {
   font-size: 1.8rem;
@@ -2048,12 +2120,12 @@ footer {
 }
 
 .mini-flag-amber {
-  background: rgba(245,158,11,0.2);
+  background: rgba(245, 158, 11, 0.2);
   color: #f59e0b;
 }
 
 .mini-flag-emerald {
-  background: rgba(16,185,129,0.2);
+  background: rgba(16, 185, 129, 0.2);
   color: #10b981;
 }
 

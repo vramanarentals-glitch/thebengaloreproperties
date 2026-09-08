@@ -66,12 +66,6 @@ export function renderHeader() {
             <i class="fa-solid ${isDark ? 'fa-sun' : 'fa-moon'}"></i>
             <span class="hide-mobile-small">${isDark ? 'Light' : 'Dark'}</span>
           </button>
-
-          <button id="btn-view-favorites" class="nav-btn" title="View Saved Homes">
-            <i class="fa-solid fa-heart" style="color: #ef4444;"></i>
-            <span class="hide-mobile-small">Saved</span>
-            <span class="fav-badge">${favCount}</span>
-          </button>
         </div>
       </div>
     </header>
@@ -100,16 +94,6 @@ export function renderHeader() {
 
   document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
     state.toggleTheme();
-  });
-
-  document.getElementById('btn-view-favorites')?.addEventListener('click', () => {
-    if (state.favorites.length === 0) {
-      alert('You have not saved any properties yet! Click the heart icon on any listing card to save it.');
-      return;
-    }
-    const favProps = state.allProperties.filter(p => state.favorites.includes(p.id));
-    state.filteredProperties = favProps;
-    state.notify();
   });
 }
 
