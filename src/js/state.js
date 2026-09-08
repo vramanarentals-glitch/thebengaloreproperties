@@ -121,24 +121,42 @@ class AppState {
 
   async initCloudSync() {
     console.log('⚡ Initializing Neon PostgreSQL database sync...');
+    await this.syncWithNeon();
+    
+    // Auto-poll Neon DB every 5 seconds so changes on Device A automatically show on Device B!
+    if (!this.pollTimer) {
+      this.pollTimer = setInterval(() => {
+        this.syncWithNeon(true);
+      }, 5000);
+    }
+  }
+
+  async syncWithNeon(isSilent = false) {
     try {
       const neonProps = await fetchNeonProperties();
-      if (neonProps && neonProps.length > 0) {
-        console.log(`✅ Loaded ${neonProps.length} properties from Neon PostgreSQL cloud database!`);
-        this.allProperties = neonProps;
-        this.saveProperties();
-        this.notify();
+      if (neonProps && Array.isArray(neonProps) && neonProps.length > 0) {
+        const currentStr = JSON.stringify(this.allProperties);
+        const newStr = JSON.stringify(neonProps);
+        if (currentStr !== newStr) {
+          if (!isSilent) console.log(`✅ Synced ${neonProps.length} properties from Neon PostgreSQL!`);
+          this.allProperties = neonProps;
+          this.saveProperties();
+          this.notify();
+        }
       }
 
       const neonLeads = await fetchNeonLeads();
-      if (neonLeads && neonLeads.length > 0) {
-        console.log(`✅ Loaded ${neonLeads.length} tenant leads from Neon PostgreSQL!`);
-        this.leads = neonLeads;
-        localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
-        this.notify();
+      if (neonLeads && Array.isArray(neonLeads) && neonLeads.length > 0) {
+        const currentLeadsStr = JSON.stringify(this.leads);
+        const newLeadsStr = JSON.stringify(neonLeads);
+        if (currentLeadsStr !== newLeadsStr) {
+          this.leads = neonLeads;
+          localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
+          this.notify();
+        }
       }
     } catch (e) {
-      console.warn('Neon DB sync note:', e);
+      if (!isSilent) console.warn('Neon DB sync note:', e);
     }
   }
 
@@ -280,7 +298,7 @@ class AppState {
     this.notify();
   }
 
-  addProperty(newProp) {
+  async addProperty(newProp) {
     const propertyWithId = {
       id: `prop-custom-${Date.now()}`,
       isVerified: true,
@@ -293,8 +311,10 @@ class AppState {
     };
     this.allProperties.unshift(propertyWithId);
     this.saveProperties();
-    saveNeonProperty(propertyWithId);
     this.notify();
+
+    await saveNeonProperty(propertyWithId);
+    await this.syncWithNeon(true);
   }
 
   saveProperties() {
@@ -507,41 +527,49 @@ class AppState {
     this.notify();
   }
 
-  deleteProperty(propertyId) {
+  async deleteProperty(propertyId) {
     this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
     this.saveProperties();
-    deleteNeonProperty(propertyId);
     this.notify();
+
+    await deleteNeonProperty(propertyId);
+    await this.syncWithNeon(true);
   }
 
-  togglePropertyFlag(propertyId, flagName) {
+  async togglePropertyFlag(propertyId, flagName) {
     const prop = this.allProperties.find(p => p.id === propertyId);
     if (prop) {
       prop[flagName] = !prop[flagName];
       this.saveProperties();
-      saveNeonProperty(prop);
       this.notify();
+
+      await saveNeonProperty(prop);
+      await this.syncWithNeon(true);
     }
   }
 
-  updateLeadStatus(leadId, newStatus) {
+  async updateLeadStatus(leadId, newStatus) {
     const lead = this.leads.find(l => l.id === leadId);
     if (lead) {
       lead.status = newStatus;
       localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
-      saveNeonLead(lead);
       this.notify();
+
+      await saveNeonLead(lead);
+      await this.syncWithNeon(true);
     }
   }
 
-  deleteLead(leadId) {
+  async deleteLead(leadId) {
     this.leads = this.leads.filter(l => l.id !== leadId);
     localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
-    deleteNeonLead(leadId);
     this.notify();
+
+    await deleteNeonLead(leadId);
+    await this.syncWithNeon(true);
   }
 
-  addLead(newLead) {
+  async addLead(newLead) {
     const leadObj = {
       id: `lead-${Date.now()}`,
       date: new Date().toISOString().split('T')[0],
@@ -550,8 +578,10 @@ class AppState {
     };
     this.leads.unshift(leadObj);
     localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
-    saveNeonLead(leadObj);
     this.notify();
+
+    await saveNeonLead(leadObj);
+    await this.syncWithNeon(true);
   }
 
   updateContactInfo(newInfo) {

@@ -14,6 +14,20 @@ export function getNeonSql() {
   return sqlInstance;
 }
 
+function safeJsonParse(val, fallback = []) {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+      return [parsed];
+    } catch (e) {
+      return fallback;
+    }
+  }
+  return fallback;
+}
+
 /**
  * Fetch all properties from Neon PostgreSQL
  */
@@ -24,27 +38,29 @@ export async function fetchNeonProperties() {
       SELECT * FROM properties ORDER BY id DESC;
     `;
     
+    if (!rows || !Array.isArray(rows)) return null;
+
     // Map column names to JS object
     return rows.map(r => ({
       id: r.id,
-      title: r.title,
-      price: Number(r.price),
-      locality: r.locality,
-      address: r.address,
-      bhk: r.bhk,
-      bhkType: r.bhktype || r.bhk,
+      title: r.title || 'Property',
+      price: Number(r.price || 0),
+      locality: r.locality || 'Bangalore',
+      address: r.address || '',
+      bhk: r.bhk || '',
+      bhkType: r.bhktype || r.bhk || '',
       bathrooms: Number(r.bathrooms || 1),
       sqft: Number(r.sqft || 500),
-      furnishing: r.furnishing,
-      tenantType: r.tenanttype,
+      furnishing: r.furnishing || 'Semi-Furnished',
+      tenantType: r.tenanttype || 'Family / Bachelors',
       deposit: Number(r.deposit || 0),
-      availableFrom: r.availablefrom,
-      description: r.description,
+      availableFrom: r.availablefrom || 'Immediate',
+      description: r.description || '',
       isVerified: Boolean(r.isverified),
       isFeatured: Boolean(r.isfeatured),
       zeroBrokerage: Boolean(r.zerobrokerage),
-      images: Array.isArray(r.images) ? r.images : (typeof r.images === 'string' ? JSON.parse(r.images) : []),
-      amenities: Array.isArray(r.amenities) ? r.amenities : (typeof r.amenities === 'string' ? JSON.parse(r.amenities) : []),
+      images: safeJsonParse(r.images, ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"]),
+      amenities: safeJsonParse(r.amenities, []),
       contact: {
         name: r.contactname || 'V. RAMANA',
         phone: r.contactphone || '+91 80504 07710',
