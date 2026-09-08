@@ -1,4 +1,12 @@
 import { PROPERTIES_DATA } from '../data/properties.js';
+import { 
+  fetchNeonProperties, 
+  saveNeonProperty, 
+  deleteNeonProperty, 
+  fetchNeonLeads, 
+  saveNeonLead, 
+  deleteNeonLead 
+} from './neon.js';
 
 class AppState {
   constructor() {
@@ -6,7 +14,7 @@ class AppState {
     const savedProps = localStorage.getItem('tbp_properties');
     this.allProperties = savedProps ? JSON.parse(savedProps) : [...PROPERTIES_DATA];
     this.filteredProperties = [...this.allProperties];
-    
+
     this.filters = {
       searchQuery: '',
       locality: 'All',
@@ -22,7 +30,7 @@ class AppState {
 
     this.sortBy = 'featured'; // 'featured', 'price-low', 'price-high', 'newest'
     this.viewMode = 'grid'; // 'grid' or 'list'
-    
+
     // Local Storage Favorites
     const savedFavs = localStorage.getItem('tbp_favorites');
     this.favorites = savedFavs ? JSON.parse(savedFavs) : ['prop-101', 'prop-104'];
@@ -104,6 +112,34 @@ class AppState {
     ];
 
     this.listeners = [];
+
+    // Real-time Neon PostgreSQL & Firebase Cloud Sync Initialization
+    this.isCloudSynced = true;
+    this.cloudProvider = 'Neon PostgreSQL';
+    this.initCloudSync();
+  }
+
+  async initCloudSync() {
+    console.log('⚡ Initializing Neon PostgreSQL database sync...');
+    try {
+      const neonProps = await fetchNeonProperties();
+      if (neonProps && neonProps.length > 0) {
+        console.log(`✅ Loaded ${neonProps.length} properties from Neon PostgreSQL cloud database!`);
+        this.allProperties = neonProps;
+        this.saveProperties();
+        this.notify();
+      }
+
+      const neonLeads = await fetchNeonLeads();
+      if (neonLeads && neonLeads.length > 0) {
+        console.log(`✅ Loaded ${neonLeads.length} tenant leads from Neon PostgreSQL!`);
+        this.leads = neonLeads;
+        localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
+        this.notify();
+      }
+    } catch (e) {
+      console.warn('Neon DB sync note:', e);
+    }
   }
 
   // Auth Methods: Email & Password, Google OAuth
@@ -257,6 +293,7 @@ class AppState {
     };
     this.allProperties.unshift(propertyWithId);
     this.saveProperties();
+    saveNeonProperty(propertyWithId);
     this.notify();
   }
 
@@ -280,7 +317,7 @@ class AppState {
     // Search query (title, address, locality)
     if (this.filters.searchQuery.trim() !== '') {
       const q = this.filters.searchQuery.toLowerCase();
-      result = result.filter(p => 
+      result = result.filter(p =>
         p.title.toLowerCase().includes(q) ||
         p.locality.toLowerCase().includes(q) ||
         p.address.toLowerCase().includes(q) ||
@@ -318,7 +355,7 @@ class AppState {
 
     // Amenities
     if (this.filters.amenities.length > 0) {
-      result = result.filter(p => 
+      result = result.filter(p =>
         this.filters.amenities.every(a => p.amenities.includes(a))
       );
     }
@@ -473,6 +510,7 @@ class AppState {
   deleteProperty(propertyId) {
     this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
     this.saveProperties();
+    deleteNeonProperty(propertyId);
     this.notify();
   }
 
@@ -481,6 +519,7 @@ class AppState {
     if (prop) {
       prop[flagName] = !prop[flagName];
       this.saveProperties();
+      saveNeonProperty(prop);
       this.notify();
     }
   }
@@ -490,6 +529,7 @@ class AppState {
     if (lead) {
       lead.status = newStatus;
       localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
+      saveNeonLead(lead);
       this.notify();
     }
   }
@@ -497,6 +537,7 @@ class AppState {
   deleteLead(leadId) {
     this.leads = this.leads.filter(l => l.id !== leadId);
     localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
+    deleteNeonLead(leadId);
     this.notify();
   }
 
@@ -509,6 +550,7 @@ class AppState {
     };
     this.leads.unshift(leadObj);
     localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
+    saveNeonLead(leadObj);
     this.notify();
   }
 
