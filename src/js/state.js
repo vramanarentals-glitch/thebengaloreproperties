@@ -317,6 +317,13 @@ class AppState {
     await this.syncWithNeon(true);
   }
 
+  async forceRefreshFromCloud() {
+    console.log('🔄 Clearing local cache and fetching fresh properties from Neon Cloud DB...');
+    localStorage.removeItem('tbp_properties');
+    await this.syncWithNeon();
+    this.notify();
+  }
+
   saveProperties() {
     try {
       localStorage.setItem('tbp_properties', JSON.stringify(this.allProperties));

@@ -56,9 +56,9 @@ export async function fetchNeonProperties() {
       deposit: Number(r.deposit || 0),
       availableFrom: r.availablefrom || 'Immediate',
       description: r.description || '',
-      isVerified: Boolean(r.isverified),
-      isFeatured: Boolean(r.isfeatured),
-      zeroBrokerage: Boolean(r.zerobrokerage),
+      isVerified: r.isverified !== false && r.isverified !== 'false',
+      isFeatured: r.isfeatured !== false && r.isfeatured !== 'false',
+      zeroBrokerage: r.zerobrokerage !== false && r.zerobrokerage !== 'false',
       images: safeJsonParse(r.images, ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"]),
       amenities: safeJsonParse(r.amenities, []),
       contact: {
