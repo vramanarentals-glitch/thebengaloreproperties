@@ -1,12 +1,4 @@
 import { PROPERTIES_DATA } from '../data/properties.js';
-import { 
-  fetchNeonProperties, 
-  saveNeonProperty, 
-  deleteNeonProperty, 
-  fetchNeonLeads, 
-  saveNeonLead, 
-  deleteNeonLead 
-} from './neon.js';
 import {
   initFirebase,
   subscribeCloudProperties,
@@ -122,17 +114,17 @@ class AppState {
 
     this.listeners = [];
 
-    // Real-time Firebase & Neon PostgreSQL Cloud Sync Initialization
+    // Real-time Firebase Cloud Sync Initialization
     this.isCloudSynced = true;
-    this.cloudProvider = 'Firebase Firestore & Neon DB';
+    this.cloudProvider = 'Firebase Firestore';
     this.initCloudSync();
   }
 
-  async initCloudSync() {
+  initCloudSync() {
     console.log('🔥 Initializing Firebase Firestore Real-Time Cloud Sync...');
     initFirebase();
 
-    // 1. Subscribe to Firebase Firestore Real-time WebSockets
+    // Subscribe to Firebase Firestore Real-time WebSockets
     this.unsubscribeFbProps = subscribeCloudProperties((fbProps) => {
       if (fbProps && Array.isArray(fbProps) && fbProps.length > 0) {
         console.log(`🔥 Real-Time Sync: Received ${fbProps.length} properties from Firebase Firestore.`);
@@ -149,43 +141,6 @@ class AppState {
         this.notify();
       }
     });
-
-    // 2. Also perform Neon PostgreSQL sync in background
-    await this.syncWithNeon();
-    if (!this.pollTimer) {
-      this.pollTimer = setInterval(() => {
-        this.syncWithNeon(true);
-      }, 10000);
-    }
-  }
-
-  async syncWithNeon(isSilent = false) {
-    try {
-      const neonProps = await fetchNeonProperties();
-      if (neonProps && Array.isArray(neonProps) && neonProps.length > 0) {
-        const currentStr = JSON.stringify(this.allProperties);
-        const newStr = JSON.stringify(neonProps);
-        if (currentStr !== newStr) {
-          if (!isSilent) console.log(`✅ Synced ${neonProps.length} properties from Neon PostgreSQL!`);
-          this.allProperties = neonProps;
-          this.saveProperties();
-          this.notify();
-        }
-      }
-
-      const neonLeads = await fetchNeonLeads();
-      if (neonLeads && Array.isArray(neonLeads) && neonLeads.length > 0) {
-        const currentLeadsStr = JSON.stringify(this.leads);
-        const newLeadsStr = JSON.stringify(neonLeads);
-        if (currentLeadsStr !== newLeadsStr) {
-          this.leads = neonLeads;
-          localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
-          this.notify();
-        }
-      }
-    } catch (e) {
-      if (!isSilent) console.warn('Neon DB sync note:', e);
-    }
   }
 
   // Auth Methods: Email & Password, Google OAuth
@@ -341,10 +296,7 @@ class AppState {
     this.saveProperties();
     this.notify();
 
-    // Save to both Firebase Firestore & Neon PostgreSQL
     await saveCloudProperty(propertyWithId);
-    await saveNeonProperty(propertyWithId);
-    await this.syncWithNeon(true);
   }
 
   async forceRefreshFromCloud() {
@@ -570,8 +522,6 @@ class AppState {
     this.notify();
 
     await deleteCloudProperty(propertyId);
-    await deleteNeonProperty(propertyId);
-    await this.syncWithNeon(true);
   }
 
   async togglePropertyFlag(propertyId, flagName) {
@@ -582,8 +532,6 @@ class AppState {
       this.notify();
 
       await saveCloudProperty(prop);
-      await saveNeonProperty(prop);
-      await this.syncWithNeon(true);
     }
   }
 
@@ -595,8 +543,6 @@ class AppState {
       this.notify();
 
       await saveCloudLead(lead);
-      await saveNeonLead(lead);
-      await this.syncWithNeon(true);
     }
   }
 
@@ -606,8 +552,6 @@ class AppState {
     this.notify();
 
     await deleteCloudLead(leadId);
-    await deleteNeonLead(leadId);
-    await this.syncWithNeon(true);
   }
 
   async addLead(newLead) {
@@ -622,8 +566,6 @@ class AppState {
     this.notify();
 
     await saveCloudLead(leadObj);
-    await saveNeonLead(leadObj);
-    await this.syncWithNeon(true);
   }
 
   updateContactInfo(newInfo) {
