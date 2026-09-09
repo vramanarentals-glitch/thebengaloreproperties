@@ -810,16 +810,26 @@ app.put('/api/contact', requireAdmin, async (req, res) => {
   }
 });
 
-// Start Express Server
-async function start() {
-  try {
-    await initializeDatabase();
-    app.listen(PORT, () => {
-      console.log(`🚀 PostgreSQL Neon REST API server running on http://localhost:${PORT}`);
-    });
-  } catch (err) {
-    console.error('Failed to start server:', err);
+// Lazy DB initialization state for Vercel serverless execution
+let dbInitialized = false;
+app.use(async (req, res, next) => {
+  if (!dbInitialized) {
+    try {
+      await initializeDatabase();
+      dbInitialized = true;
+    } catch (e) {
+      console.error('Lazy DB initialization error:', e.message);
+    }
   }
+  next();
+});
+
+// Start Express Server locally
+if (!process.env.VERCEL) {
+  await initializeDatabase().catch(err => console.error('Failed DB init:', err));
+  app.listen(PORT, () => {
+    console.log(`🚀 PostgreSQL Neon REST API server running on http://localhost:${PORT}`);
+  });
 }
 
-start();
+export default app;
