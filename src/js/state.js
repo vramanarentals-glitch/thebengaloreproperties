@@ -133,7 +133,7 @@ class AppState {
 
       // 3. Fetch properties from Neon DB
       const dbProps = await api.getProperties();
-      if (dbProps && Array.isArray(dbProps) && dbProps.length > 0) {
+      if (dbProps && Array.isArray(dbProps)) {
         this.allProperties = dbProps;
         this.saveProperties();
       }
@@ -507,10 +507,20 @@ class AppState {
   }
 
   async deleteProperty(propertyId) {
-    this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
-    this.saveProperties();
-    this.notify();
-    await api.deleteProperty(propertyId);
+    const res = await api.deleteProperty(propertyId);
+    if (res && res.success) {
+      this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
+      this.saveProperties();
+      this.notify();
+      return true;
+    } else {
+      console.error('Failed to delete property from backend:', res);
+      // Still filter locally as fallback if needed or refetch
+      this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
+      this.saveProperties();
+      this.notify();
+      return false;
+    }
   }
 
   async togglePropertyFlag(propertyId, flagName) {

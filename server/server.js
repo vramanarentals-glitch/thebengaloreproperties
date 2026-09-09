@@ -394,11 +394,12 @@ app.patch('/api/properties/:id/toggle-flag', requireAdmin, async (req, res) => {
 app.delete('/api/properties/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    await query('DELETE FROM properties WHERE id = $1', [id]);
-    res.json({ success: true, message: `Property ${id} deleted` });
+    await query('DELETE FROM property_images WHERE property_id = $1;', [id]);
+    const result = await query('DELETE FROM properties WHERE id = $1 RETURNING id;', [id]);
+    res.json({ success: true, message: `Property ${id} deleted`, deletedCount: result.rowCount });
   } catch (err) {
     console.error('Error deleting property from DB:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

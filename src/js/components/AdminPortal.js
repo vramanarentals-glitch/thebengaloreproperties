@@ -849,10 +849,10 @@ function attachAdminTabEvents(tab, root) {
     });
 
     root.querySelectorAll('[data-del-prop]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const propId = btn.dataset.delProp;
         if (confirm('Are you sure you want to delete this property listing?')) {
-          state.deleteProperty(propId);
+          await state.deleteProperty(propId);
           showToast('🗑️ Property deleted successfully.');
         }
       });
