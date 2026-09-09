@@ -95,57 +95,9 @@ export async function initializeDatabase() {
   await pool.query(createTablesQuery);
   console.log('Database tables created/verified successfully in Neon DB.');
 
-  // Check if properties need seeding
-  const propCountRes = await pool.query('SELECT COUNT(*) FROM properties');
-  const count = parseInt(propCountRes.rows[0].count, 10);
-
-  if (count === 0) {
-    console.log('Seeding initial curated Bengaluru properties into Neon DB...');
-    for (const prop of PROPERTIES_DATA) {
-      const insertQuery = `
-        INSERT INTO properties (
-          id, title, locality, address, price, deposit, bhk, bhk_type, type,
-          furnishing, sqft, bathrooms, floor, facing, available_from,
-          preferred_tenants, zero_brokerage, is_verified, is_featured,
-          description, owner_name, owner_phone, owner_type, amenities, images, proximity
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9,
-          $10, $11, $12, $13, $14, $15,
-          $16, $17, $18, $19,
-          $20, $21, $22, $23, $24, $25, $26
-        ) ON CONFLICT (id) DO NOTHING;
-      `;
-      await pool.query(insertQuery, [
-        prop.id,
-        prop.title,
-        prop.locality,
-        prop.address,
-        prop.price,
-        prop.deposit,
-        prop.bhk,
-        prop.bhkType,
-        prop.type,
-        prop.furnishing,
-        prop.sqft,
-        prop.bathrooms || 2,
-        prop.floor || '1st Floor',
-        prop.facing || 'East Facing',
-        prop.availableFrom || 'Immediate',
-        prop.preferredTenants || 'Any',
-        prop.zeroBrokerage ?? true,
-        prop.isVerified ?? true,
-        prop.isFeatured ?? false,
-        prop.description,
-        prop.ownerName || 'V. RAMANA',
-        prop.ownerPhone || '+91 80504 07710',
-        prop.ownerType || 'Direct Owner',
-        JSON.stringify(prop.amenities || []),
-        JSON.stringify(prop.images || []),
-        JSON.stringify(prop.proximity || {})
-      ]);
-    }
-    console.log(`Seeded ${PROPERTIES_DATA.length} properties.`);
-  }
+  // Clean up any previously seeded mock properties
+  await pool.query("DELETE FROM properties WHERE id LIKE 'prop-1%';");
+  console.log('Cleared hardcoded mock properties from Neon DB.');
 
   // Check contact_settings seeding
   const contactRes = await pool.query('SELECT COUNT(*) FROM contact_settings');
@@ -179,54 +131,8 @@ export async function initializeDatabase() {
     await pool.query(insertContact, [JSON.stringify(services)]);
   }
 
-  // Check leads seeding
-  const leadsRes = await pool.query('SELECT COUNT(*) FROM leads');
-  if (parseInt(leadsRes.rows[0].count, 10) === 0) {
-    console.log('Seeding initial sample leads into Neon DB...');
-    const defaultLeads = [
-      {
-        id: "lead-101",
-        tenant_name: "Rajesh Kumar",
-        tenant_phone: "+91 98860 12345",
-        property_id: "prop-101",
-        property_title: "Skyline Zenith Luxury 3BHK Penthouse",
-        locality: "Indiranagar",
-        date: "2026-09-03",
-        status: "New",
-        notes: "Looking to move in by next month. Prefers fully furnished."
-      },
-      {
-        id: "lead-102",
-        tenant_name: "Priya Sharma",
-        tenant_phone: "+91 97420 54321",
-        property_id: "prop-102",
-        property_title: "Greenwood Retreat 2BHK Garden Apartment",
-        locality: "Koramangala",
-        date: "2026-09-02",
-        status: "Contacted",
-        notes: "Scheduled weekend site visit."
-      },
-      {
-        id: "lead-103",
-        tenant_name: "Anand Verma",
-        tenant_phone: "+91 99001 88776",
-        property_id: "prop-108",
-        property_title: "Murugeshpalaya Commercial Godown Space",
-        locality: "Murugeshpalaya",
-        date: "2026-09-01",
-        status: "Scheduled",
-        notes: "Requires 3-phase power for warehouse logistics."
-      }
-    ];
-
-    for (const l of defaultLeads) {
-      await pool.query(
-        `INSERT INTO leads (id, tenant_name, tenant_phone, property_id, property_title, locality, date, status, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (id) DO NOTHING;`,
-        [l.id, l.tenant_name, l.tenant_phone, l.property_id, l.property_title, l.locality, l.date, l.status, l.notes]
-      );
-    }
-  }
+  // Clean up any sample leads tied to hardcoded mock properties
+  await pool.query("DELETE FROM leads WHERE id LIKE 'lead-1%';");
 
   // Create / sync default admin user from .env credentials
   const adminEmail = (process.env.ADMIN_EMAIL || 'vramanarentals@gmail.com').trim().toLowerCase();

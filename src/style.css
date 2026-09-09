@@ -1147,10 +1147,22 @@ button {
 /* ==========================================================================
    MODAL WINDOWS
    ========================================================================== */
+body.modal-open {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
+body.modal-open .floating-call-btn,
+body.modal-open .floating-whatsapp-btn {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 100000;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(10px);
   display: flex;
@@ -1158,6 +1170,7 @@ button {
   justify-content: center;
   padding: 1.5rem;
   animation: fadeIn 0.25s ease;
+  overflow-y: auto;
 }
 
 .modal-card {
@@ -1167,10 +1180,45 @@ button {
   max-width: 850px;
   width: 100%;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
   box-shadow: var(--shadow-lg);
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.modal-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.modal-card input,
+.modal-card select,
+.modal-card textarea {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+}
+
+.modal-card select {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.contact-detail-row {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
 }
 
 .modal-close-btn {
@@ -1474,13 +1522,27 @@ footer {
     gap: 1.25rem;
   }
 
+  .modal-overlay {
+    padding: 0.75rem 0.5rem;
+    align-items: flex-start;
+  }
+
   .modal-card {
-    max-width: 95vw;
-    padding: 1.25rem;
+    width: 96vw !important;
+    max-width: 96vw !important;
+    border-radius: 16px !important;
+    max-height: 92vh !important;
+    max-height: 92dvh !important;
+    margin: auto 0;
   }
 
   .modal-body {
-    padding: 1.25rem;
+    padding: 1.25rem 1rem !important;
+  }
+
+  .modal-grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
   }
 
   footer {

@@ -33,7 +33,7 @@ export function renderListPropertyModal() {
               <input type="text" id="lp-title" placeholder="e.g. Prestige Lakeview Spacious 2BHK" required />
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="modal-grid-2col">
               <div class="input-field-group">
                 <label>Locality</label>
                 <select id="lp-locality" class="search-select" style="padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input);">
@@ -52,7 +52,7 @@ export function renderListPropertyModal() {
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="modal-grid-2col">
               <div class="input-field-group">
                 <label>Monthly Rent Expected (₹)</label>
                 <input type="number" id="lp-price" placeholder="45000" min="5000" step="1000" required />
@@ -64,7 +64,7 @@ export function renderListPropertyModal() {
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="modal-grid-2col">
               <div class="input-field-group">
                 <label>Built-up Area (Sq Ft)</label>
                 <input type="number" id="lp-sqft" placeholder="1250" required />
@@ -93,7 +93,7 @@ export function renderListPropertyModal() {
               <div id="lp-image-preview" style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.6rem;"></div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="modal-grid-2col">
               <div class="input-field-group">
                 <label>Your Full Name</label>
                 <input type="text" id="lp-owner-name" placeholder="Owner Name" required />

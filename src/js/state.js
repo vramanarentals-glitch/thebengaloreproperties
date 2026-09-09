@@ -3,9 +3,25 @@ import { api } from './api.js';
 
 class AppState {
   constructor() {
+    // Purge old cached hardcoded reference data from localStorage
+    try {
+      const existingProps = localStorage.getItem('tbp_properties');
+      if (existingProps && existingProps.includes('prop-101')) {
+        localStorage.removeItem('tbp_properties');
+      }
+      const existingLeads = localStorage.getItem('tbp_leads');
+      if (existingLeads && existingLeads.includes('lead-101')) {
+        localStorage.removeItem('tbp_leads');
+      }
+      const existingFavs = localStorage.getItem('tbp_favorites');
+      if (existingFavs && existingFavs.includes('prop-101')) {
+        localStorage.removeItem('tbp_favorites');
+      }
+    } catch (e) {}
+
     // Local Storage Properties fallback
     const savedProps = localStorage.getItem('tbp_properties');
-    this.allProperties = savedProps ? JSON.parse(savedProps) : [...PROPERTIES_DATA];
+    this.allProperties = savedProps ? JSON.parse(savedProps) : [];
     this.filteredProperties = [...this.allProperties];
 
     this.filters = {
@@ -26,7 +42,7 @@ class AppState {
 
     // Local Storage Favorites
     const savedFavs = localStorage.getItem('tbp_favorites');
-    this.favorites = savedFavs ? JSON.parse(savedFavs) : ['prop-101', 'prop-104'];
+    this.favorites = savedFavs ? JSON.parse(savedFavs) : [];
 
     // Theme Mode (Default to Light Mode)
     const savedTheme = localStorage.getItem('tbp_theme') || 'light';
@@ -71,38 +87,7 @@ class AppState {
 
     // Tenant Leads / Inquiries
     const savedLeads = localStorage.getItem('tbp_leads');
-    this.leads = savedLeads ? JSON.parse(savedLeads) : [
-      {
-        id: "lead-101",
-        tenantName: "Rajesh Kumar",
-        tenantPhone: "+91 98860 12345",
-        propertyTitle: "Skyline Zenith Luxury 3BHK Penthouse",
-        locality: "Indiranagar",
-        date: "2026-09-03",
-        status: "New",
-        notes: "Looking to move in by next month. Prefers fully furnished."
-      },
-      {
-        id: "lead-102",
-        tenantName: "Priya Sharma",
-        tenantPhone: "+91 97420 54321",
-        propertyTitle: "Prestige Cyber Heights 2BHK",
-        locality: "Whitefield",
-        date: "2026-09-02",
-        status: "Contacted",
-        notes: "Scheduled weekend site visit."
-      },
-      {
-        id: "lead-103",
-        tenantName: "Anand Verma",
-        tenantPhone: "+91 99001 88776",
-        propertyTitle: "Murugeshpalaya Commercial Godown Space",
-        locality: "Murugeshpalaya",
-        date: "2026-09-01",
-        status: "Scheduled",
-        notes: "Requires 3-phase power for warehouse logistics."
-      }
-    ];
+    this.leads = savedLeads ? JSON.parse(savedLeads) : [];
 
     this.dbStatus = 'connecting'; // 'connected' | 'offline'
     this.listeners = [];
@@ -124,49 +109,67 @@ class AppState {
   // Fetch live state from Neon DB API
   async initFromDb() {
     try {
+      let hasChanged = false;
+
       // 1. Check health
       const health = await api.getHealth();
-      if (health && health.status === 'ok') {
-        this.dbStatus = 'connected';
+      const newStatus = (health && health.status === 'ok') ? 'connected' : 'offline';
+      if (this.dbStatus !== newStatus) {
+        this.dbStatus = newStatus;
+        hasChanged = true;
       }
 
       // 2. If admin token stored, verify validity
       const token = localStorage.getItem('tbp_admin_token');
       if (token) {
         const isValid = await api.verifyAdminToken();
-        if (!isValid) {
+        if (!isValid && this.isAdminLoggedIn) {
           this.isAdminLoggedIn = false;
           localStorage.removeItem('tbp_admin_auth');
           localStorage.removeItem('tbp_admin_token');
+          hasChanged = true;
         }
       }
 
       // 3. Fetch properties from Neon DB
       const dbProps = await api.getProperties();
       if (dbProps && Array.isArray(dbProps)) {
-        this.allProperties = dbProps;
-        this.saveProperties();
+        if (JSON.stringify(dbProps) !== JSON.stringify(this.allProperties)) {
+          this.allProperties = dbProps;
+          this.saveProperties();
+          hasChanged = true;
+        }
       }
 
       // 4. Fetch leads from Neon DB
       const dbLeads = await api.getLeads();
       if (dbLeads && Array.isArray(dbLeads)) {
-        this.leads = dbLeads;
-        localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
+        if (JSON.stringify(dbLeads) !== JSON.stringify(this.leads)) {
+          this.leads = dbLeads;
+          localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
+          hasChanged = true;
+        }
       }
 
       // 5. Fetch contact settings
       const dbContact = await api.getContactInfo();
       if (dbContact) {
-        this.contactInfo = dbContact;
-        localStorage.setItem('tbp_contact_info', JSON.stringify(this.contactInfo));
+        if (JSON.stringify(dbContact) !== JSON.stringify(this.contactInfo)) {
+          this.contactInfo = dbContact;
+          localStorage.setItem('tbp_contact_info', JSON.stringify(this.contactInfo));
+          hasChanged = true;
+        }
       }
 
-      this.notify();
+      if (hasChanged) {
+        this.applyFilters();
+        this.notify();
+      }
     } catch (e) {
-      console.warn('Could not sync with Neon DB on start:', e);
-      this.dbStatus = 'offline';
-      this.notify();
+      if (this.dbStatus !== 'offline') {
+        this.dbStatus = 'offline';
+        this.notify();
+      }
     }
   }
 
@@ -368,10 +371,10 @@ class AppState {
       if (resetList && Array.isArray(resetList)) {
         this.allProperties = resetList;
       } else {
-        this.allProperties = [...PROPERTIES_DATA];
+        this.allProperties = [];
       }
     } catch (e) {
-      this.allProperties = [...PROPERTIES_DATA];
+      this.allProperties = [];
     }
     this.saveProperties();
     this.notify();

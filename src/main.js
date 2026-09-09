@@ -35,6 +35,9 @@ function renderApp() {
   renderAuthModal();
   renderAdminPortal();
 
+  // Toggle body scroll lock & hide floating call buttons when any modal is active
+  document.body.classList.toggle('modal-open', Boolean(state.activeModal));
+
   // Keep focus on active element if it was set
   if (activeEl && document.body.contains(activeEl)) {
     try {

@@ -103,7 +103,7 @@ export function renderPropertyModal() {
             ${p.proximity ? `
               <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 16px; margin-bottom: 1.5rem;">
                 <h4 class="font-heading" style="font-size: 1.1rem; margin-bottom: 0.75rem;">⚡ Proximity & Proximity Markers</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.9rem; color: var(--text-secondary);">
+                <div class="modal-grid-2col" style="gap: 0.75rem; font-size: 0.9rem; color: var(--text-secondary);">
                   <div>🚇 <strong>Metro:</strong> ${p.proximity.metro}</div>
                   <div>🏢 <strong>Tech Hub:</strong> ${p.proximity.techPark}</div>
                   <div>🏥 <strong>Hospital:</strong> ${p.proximity.hospital}</div>
@@ -243,101 +243,101 @@ export function renderPropertyModal() {
 
     root.innerHTML = `
       <div class="modal-overlay" id="modal-backdrop">
-        <div class="modal-card" style="max-width: 780px; width: 92vw; max-height: 90vh; overflow-y: auto; background: #0b0f19; border: 2px solid rgba(245, 158, 11, 0.5); box-shadow: 0 25px 60px rgba(0,0,0,0.85); padding: 0; border-radius: 20px;">
-          <button class="modal-close-btn" id="btn-close-modal" style="top: 15px; right: 15px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid rgba(255,255,255,0.2); z-index: 10;">
+        <div class="modal-card" style="max-width: 680px; width: 94vw; max-height: 90vh; max-height: 90dvh; overflow-y: auto; overflow-x: hidden; background: #0b0f19; border: 2px solid rgba(245, 158, 11, 0.5); box-shadow: 0 25px 60px rgba(0,0,0,0.85); padding: 0; border-radius: 20px; box-sizing: border-box;">
+          <button class="modal-close-btn" id="btn-close-modal" style="top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: #fff; border: 1px solid rgba(255,255,255,0.25); z-index: 20; width: 34px; height: 34px;">
             <i class="fa-solid fa-xmark"></i>
           </button>
 
           <!-- Digital Business Card UI Header -->
-          <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-b: 2px solid #f59e0b; position: relative;">
+          <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-bottom: 2px solid #f59e0b; position: relative;">
             <!-- Gold Trim Curved Header -->
-            <div style="background: linear-gradient(90deg, #d97706, #f59e0b, #fbbf24); padding: 1rem 1.5rem; text-align: center; color: #0b0f19; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <div style="background: linear-gradient(90deg, #d97706, #f59e0b, #fbbf24); padding: 0.75rem 3.5rem 0.75rem 1rem; text-align: center; color: #0b0f19; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               <i class="fa-solid fa-building-circle-check"></i> Official Business Contact Card
             </div>
 
             <!-- Top Front Banner (Matching Business Card Image) -->
-            <div style="padding: 1.5rem 1.5rem 1rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px dashed rgba(245,158,11,0.3);">
-              <div style="display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 60px; height: 60px; border-radius: 14px; background: linear-gradient(135deg, #f59e0b, #b45309); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; box-shadow: 0 6px 16px rgba(245,158,11,0.4);">
+            <div style="padding: 1.25rem 1.25rem 1rem 1.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px dashed rgba(245,158,11,0.3);">
+              <div style="display: flex; align-items: center; gap: 0.85rem; min-width: 0;">
+                <div style="width: 50px; height: 50px; border-radius: 14px; background: linear-gradient(135deg, #f59e0b, #b45309); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.7rem; flex-shrink: 0; box-shadow: 0 6px 16px rgba(245,158,11,0.4);">
                   <i class="fa-solid fa-city"></i>
                 </div>
-                <div>
-                  <div style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 800; color: #ffffff; line-height: 1.1; letter-spacing: -0.5px;">
+                <div style="min-width: 0;">
+                  <div style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 800; color: #ffffff; line-height: 1.15; letter-spacing: -0.3px; word-break: break-word;">
                     The Bangalore <span style="color: #f59e0b;">Properties</span>
                   </div>
-                  <div style="font-size: 0.68rem; font-weight: 700; color: #94a3b8; letter-spacing: 1px; margin-top: 4px;">
-                    RENT • LEASE • SALE • OFFICE SPACE • GODOWN SPACE • ETC.
+                  <div style="font-size: 0.65rem; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px; margin-top: 4px; line-height: 1.3;">
+                    RENT • LEASE • SALE • OFFICE • GODOWN
                   </div>
                 </div>
               </div>
 
               <!-- Top Right Highlight -->
-              <div style="background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; padding: 0.75rem 1.25rem; border-radius: 12px; text-align: right;">
-                <div style="font-size: 1.25rem; font-weight: 900; color: #ffffff; font-family: 'Outfit', sans-serif;">${c.proprietor}</div>
-                <div style="font-size: 0.95rem; font-weight: 700; color: #f59e0b;">
+              <div style="background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; padding: 0.65rem 1rem; border-radius: 12px; text-align: left; flex: 1; min-width: 170px;">
+                <div style="font-size: 1.15rem; font-weight: 900; color: #ffffff; font-family: 'Outfit', sans-serif;">${c.proprietor}</div>
+                <div style="font-size: 0.9rem; font-weight: 700; color: #f59e0b; white-space: nowrap;">
                   <i class="fa-solid fa-phone"></i> ${c.phone}
                 </div>
               </div>
             </div>
 
             <!-- Card Bottom Banner with Slogan (Matching Business Card Image) -->
-            <div style="background: linear-gradient(90deg, #0f172a, #1e1b4b); padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1);">
-              <div style="font-size: 0.8rem; color: #cbd5e1;">
+            <div style="background: linear-gradient(90deg, #0f172a, #1e1b4b); padding: 0.85rem 1.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+              <div style="font-size: 0.78rem; color: #cbd5e1;">
                 <span style="color: #f59e0b; font-weight: 700;">PROPRIETOR:</span> ${c.proprietor}
               </div>
-              <div style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 900; color: #fbbf24; letter-spacing: 1px; text-shadow: 0 0 10px rgba(245,158,11,0.5);">
+              <div style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 900; color: #fbbf24; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(245,158,11,0.5);">
                 YOUR PROPERTY, OUR PRIORITY.
               </div>
             </div>
           </div>
 
           <!-- Business Card Details Body -->
-          <div style="padding: 1.5rem; background: #0f172a;">
-            <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div style="padding: 1.25rem; background: #0f172a;">
+            <div style="display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.25rem;">
 
-              <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 1rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(245,158,11,0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+              <div class="contact-detail-row">
+                <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(245,158,11,0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
                   <i class="fa-solid fa-user-tie"></i>
                 </div>
-                <div>
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">CONTACT PERSON</div>
-                  <div style="font-size: 1.1rem; font-weight: 800; color: #f8fafc;">${c.proprietor} (${c.role})</div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">CONTACT PERSON</div>
+                  <div style="font-size: 1rem; font-weight: 800; color: #f8fafc;">${c.proprietor} (${c.role})</div>
                 </div>
               </div>
 
-              <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 1rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(37,211,102,0.15); color: #25D366; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">
+              <div class="contact-detail-row">
+                <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(37,211,102,0.15); color: #25D366; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
                   <i class="fa-brands fa-whatsapp"></i>
                 </div>
-                <div style="flex-grow: 1;">
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">WHATSAPP & PHONE NUMBER</div>
-                  <div style="font-size: 1.1rem; font-weight: 800; color: #f8fafc;">${c.phone}</div>
+                <div style="flex: 1; min-width: 140px;">
+                  <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">WHATSAPP & PHONE</div>
+                  <div style="font-size: 1.05rem; font-weight: 800; color: #f8fafc; white-space: nowrap;">${c.phone}</div>
                 </div>
-                <a href="https://wa.me/${c.whatsapp.replace('+', '')}?text=Hello%20V.%20Ramana,%20I%20want%20to%20inquire%20about%20properties%20in%20Bangalore." target="_blank" class="nav-btn" style="background: #25D366; color: #fff; border: none; font-weight: 800; padding: 0.45rem 1rem; font-size: 0.85rem; border-radius: 10px;">
+                <a href="https://wa.me/${c.whatsapp.replace('+', '')}?text=Hello%20V.%20Ramana,%20I%20want%20to%20inquire%20about%20properties%20in%20Bangalore." target="_blank" class="nav-btn" style="background: #25D366; color: #fff; border: none; font-weight: 800; padding: 0.5rem 0.85rem; font-size: 0.82rem; border-radius: 10px; flex-shrink: 0; white-space: nowrap;">
                   <i class="fa-brands fa-whatsapp"></i> WhatsApp
                 </a>
               </div>
 
-              <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 1rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(239,68,68,0.15); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+              <div class="contact-detail-row">
+                <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(239,68,68,0.15); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
                   <i class="fa-solid fa-envelope"></i>
                 </div>
-                <div style="flex-grow: 1;">
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">EMAIL ADDRESS</div>
-                  <div style="font-size: 1rem; font-weight: 700; color: #f8fafc; word-break: break-all;">${c.email}</div>
+                <div style="flex: 1; min-width: 140px;">
+                  <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">EMAIL ADDRESS</div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: #f8fafc; word-break: break-all;">${c.email}</div>
                 </div>
-                <a href="mailto:${c.email}" class="nav-btn" style="background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid #ef4444; padding: 0.4rem 0.9rem; font-size: 0.85rem;">
+                <a href="mailto:${c.email}" class="nav-btn" style="background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid #ef4444; padding: 0.45rem 0.8rem; font-size: 0.82rem; flex-shrink: 0; white-space: nowrap;">
                   Email Us
                 </a>
               </div>
 
-              <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 1rem; border-radius: 12px; display: flex; align-items: flex-start; gap: 1rem;">
-                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(99,102,241,0.15); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; margin-top: 2px;">
+              <div class="contact-detail-row" style="align-items: flex-start;">
+                <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.15); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0; margin-top: 2px;">
                   <i class="fa-solid fa-location-dot"></i>
                 </div>
-                <div>
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">OFFICE ADDRESS</div>
-                  <div style="font-size: 0.95rem; font-weight: 700; color: #f8fafc; line-height: 1.5; margin-top: 2px;">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">OFFICE ADDRESS</div>
+                  <div style="font-size: 0.88rem; font-weight: 700; color: #f8fafc; line-height: 1.45; margin-top: 2px;">
                     Ground floor, Srinivas Residency,<br/>
                     2nd Main, KR Garden, Murugeshpalaya,<br/>
                     Bangalore - 560017
@@ -348,11 +348,11 @@ export function renderPropertyModal() {
             </div>
 
             <!-- Services Offered Bottom Strip -->
-            <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); padding: 0.85rem; border-radius: 12px; text-align: center; margin-bottom: 1.25rem;">
-              <div style="font-size: 0.7rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">PROPERTY SERVICES OFFERED</div>
-              <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem;">
+            <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); padding: 0.75rem; border-radius: 12px; text-align: center; margin-bottom: 1rem;">
+              <div style="font-size: 0.68rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;">PROPERTY SERVICES OFFERED</div>
+              <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem;">
                 ${c.services.map(s => `
-                  <span style="background: rgba(0,0,0,0.4); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                  <span style="background: rgba(0,0,0,0.4); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
                     ${s}
                   </span>
                 `).join('')}
@@ -407,7 +407,7 @@ export function renderPropertyModal() {
             </div>
 
             <form id="form-book-call" style="display: flex; flex-direction: column; gap: 1.25rem;">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="modal-grid-2col">
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: #e2e8f0;">Your Full Name *</label>
                   <input type="text" id="book-call-name" placeholder="e.g. Anand Sharma" required style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px;" />
@@ -418,7 +418,7 @@ export function renderPropertyModal() {
                 </div>
               </div>
 
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="modal-grid-2col">
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: #e2e8f0;">Preferred Service</label>
                   <select id="book-call-service" style="background: rgba(15,23,42,0.9); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px;">
@@ -435,7 +435,7 @@ export function renderPropertyModal() {
                 </div>
               </div>
 
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="modal-grid-2col">
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: #e2e8f0;">Preferred Call Date *</label>
                   <input type="date" id="book-call-date" min="${today}" value="${today}" required style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px;" />
@@ -456,10 +456,10 @@ export function renderPropertyModal() {
               </div>
 
               <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                <button type="submit" class="nav-btn nav-btn-primary" style="flex: 1; min-width: 180px; justify-content: center; padding: 0.9rem; font-size: 1rem; font-weight: 800;">
+                <button type="submit" class="nav-btn nav-btn-primary" style="flex: 1; min-width: 140px; justify-content: center; padding: 0.85rem; font-size: 0.95rem; font-weight: 800;">
                   <i class="fa-solid fa-phone-volume"></i> Confirm & Book Callback
                 </button>
-                <a href="https://wa.me/${c.whatsapp.replace('+', '')}?text=Hello%20V.%20Ramana,%20I%20would%20like%20to%20book%20a%20call%20regarding%20properties." target="_blank" class="nav-btn" style="background: #25D366; color: #fff; font-weight: 800; padding: 0.9rem; border-radius: 10px; border: none; text-decoration: none;">
+                <a href="https://wa.me/${c.whatsapp.replace('+', '')}?text=Hello%20V.%20Ramana,%20I%20would%20like%20to%20book%20a%20call%20regarding%20properties." target="_blank" class="nav-btn" style="flex: 1; min-width: 140px; justify-content: center; background: #25D366; color: #fff; font-weight: 800; padding: 0.85rem; border-radius: 10px; border: none; text-decoration: none;">
                   <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
                 </a>
               </div>

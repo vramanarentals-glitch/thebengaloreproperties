@@ -6,7 +6,6 @@ import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import { pool, query } from './db.js';
 import { initializeDatabase } from './init-db.js';
-import { PROPERTIES_DATA } from '../src/data/properties.js';
 
 dotenv.config();
 
@@ -403,55 +402,11 @@ app.delete('/api/properties/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// Reset properties to default sample dataset (Admin Only)
+// Reset properties to default (Clear all properties)
 app.post('/api/properties/reset', requireAdmin, async (req, res) => {
   try {
     await query('DELETE FROM properties;');
-    for (const prop of PROPERTIES_DATA) {
-      const insertQuery = `
-        INSERT INTO properties (
-          id, title, locality, address, price, deposit, bhk, bhk_type, type,
-          furnishing, sqft, bathrooms, floor, facing, available_from,
-          preferred_tenants, zero_brokerage, is_verified, is_featured,
-          description, owner_name, owner_phone, owner_type, amenities, images, proximity
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9,
-          $10, $11, $12, $13, $14, $15,
-          $16, $17, $18, $19,
-          $20, $21, $22, $23, $24, $25, $26
-        );
-      `;
-      await query(insertQuery, [
-        prop.id,
-        prop.title,
-        prop.locality,
-        prop.address,
-        prop.price,
-        prop.deposit,
-        prop.bhk,
-        prop.bhkType,
-        prop.type,
-        prop.furnishing,
-        prop.sqft,
-        prop.bathrooms || 2,
-        prop.floor || '1st Floor',
-        prop.facing || 'East Facing',
-        prop.availableFrom || 'Immediate',
-        prop.preferredTenants || 'Any',
-        prop.zeroBrokerage ?? true,
-        prop.isVerified ?? true,
-        prop.isFeatured ?? false,
-        prop.description,
-        prop.ownerName || 'V. RAMANA',
-        prop.ownerPhone || '+91 80504 07710',
-        prop.ownerType || 'Direct Owner',
-        JSON.stringify(prop.amenities || []),
-        JSON.stringify(prop.images || []),
-        JSON.stringify(prop.proximity || {})
-      ]);
-    }
-    const result = await query('SELECT * FROM properties ORDER BY created_at DESC, id DESC');
-    res.json(result.rows.map(formatPropertyRow));
+    res.json([]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

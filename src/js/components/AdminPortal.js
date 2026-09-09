@@ -633,7 +633,7 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
 
           <div class="input-field-group">
             <label>Property Description</label>
-            <textarea id="admin-p-desc" rows="3" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);" required>Spacious modern rental property located in prime Bengaluru locality. Managed directly with 0% brokerage fees.</textarea>
+            <textarea id="admin-p-desc" rows="3" placeholder="Describe property features, floor level, amenities, nearby landmarks, etc." style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);" required></textarea>
           </div>
 
           <button type="submit" class="nav-btn nav-btn-primary" style="justify-content: center; padding: 0.9rem; font-size: 1rem;">
