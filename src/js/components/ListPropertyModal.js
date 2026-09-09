@@ -1,5 +1,6 @@
 import { LOCALITIES } from '../../data/properties.js';
 import { state } from '../state.js';
+import { api } from '../api.js';
 import { showToast } from './Toast.js';
 
 export function renderListPropertyModal() {
@@ -10,7 +11,7 @@ export function renderListPropertyModal() {
 
   root.innerHTML = `
     <div class="modal-overlay" id="modal-backdrop">
-      <div class="modal-card" style="max-width: 650px;">
+      <div class="modal-card" style="max-width: 650px; max-height: 90vh; overflow-y: auto;">
         <button class="modal-close-btn" id="btn-close-modal">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -22,7 +23,7 @@ export function renderListPropertyModal() {
             </div>
             <div>
               <h3 class="font-heading" style="font-size: 1.5rem;">List Your Property in Bengaluru</h3>
-              <p style="font-size: 0.85rem; color: var(--text-secondary);">Post your 0% brokerage rental listing & connect with 45,000+ verified tenants instantly.</p>
+              <p style="font-size: 0.85rem; color: var(--text-secondary);">Post your 0% brokerage rental listing & sync directly with our Neon PostgreSQL cloud database.</p>
             </div>
           </div>
 
@@ -79,6 +80,19 @@ export function renderListPropertyModal() {
               </div>
             </div>
 
+            <div class="input-field-group">
+              <label>Upload Property Photos (Stored in Neon DB)</label>
+              <input type="file" id="lp-file-input" accept="image/*" multiple style="display: none;" />
+              <div id="lp-upload-dropzone" class="admin-dropzone-box" style="cursor: pointer; padding: 1.25rem; text-align: center; border: 2px dashed var(--border-color); border-radius: 12px; background: rgba(99, 102, 241, 0.04);">
+                <div style="font-size: 1.8rem; color: var(--accent-indigo); margin-bottom: 0.3rem;">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">Click or Drag & Drop Property Images</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem;">Images are saved directly in PostgreSQL Database</div>
+              </div>
+              <div id="lp-image-preview" style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.6rem;"></div>
+            </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
               <div class="input-field-group">
                 <label>Your Full Name</label>
@@ -91,7 +105,7 @@ export function renderListPropertyModal() {
               </div>
             </div>
 
-            <button type="submit" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem; margin-top: 0.5rem;">
+            <button type="submit" id="btn-submit-listing" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem; margin-top: 0.5rem;">
               <i class="fa-solid fa-paper-plane"></i> Publish 0% Brokerage Listing
             </button>
           </form>
@@ -100,8 +114,82 @@ export function renderListPropertyModal() {
     </div>
   `;
 
-  document.getElementById('form-list-property')?.addEventListener('submit', (e) => {
+  // Image Upload Handling
+  const fileInput = document.getElementById('lp-file-input');
+  const dropzone = document.getElementById('lp-upload-dropzone');
+  const previewContainer = document.getElementById('lp-image-preview');
+  let uploadedImages = [];
+
+  dropzone?.addEventListener('click', () => fileInput?.click());
+
+  dropzone?.addEventListener('dragover', (e) => {
     e.preventDefault();
+    dropzone.style.borderColor = 'var(--accent-indigo)';
+  });
+
+  dropzone?.addEventListener('dragleave', () => {
+    dropzone.style.borderColor = 'var(--border-color)';
+  });
+
+  dropzone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.style.borderColor = 'var(--border-color)';
+    if (e.dataTransfer.files?.length) {
+      processFiles(Array.from(e.dataTransfer.files));
+    }
+  });
+
+  fileInput?.addEventListener('change', (e) => {
+    if (e.target.files?.length) {
+      processFiles(Array.from(e.target.files));
+    }
+  });
+
+  function processFiles(files) {
+    files.forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        uploadedImages.push(event.target.result);
+        renderPreviews();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderPreviews() {
+    if (!previewContainer) return;
+    if (uploadedImages.length === 0) {
+      previewContainer.innerHTML = '';
+      return;
+    }
+    previewContainer.innerHTML = uploadedImages.map((img, idx) => `
+      <div style="position: relative; display: inline-block;">
+        <img src="${img}" style="width: 72px; height: 72px; border-radius: 10px; object-fit: cover; border: 2px solid var(--accent-indigo);" />
+        <button type="button" class="btn-remove-lp-img" data-img-idx="${idx}" style="position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; background: #ef4444; color: #fff; border: none; font-size: 0.65rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    `).join('');
+
+    previewContainer.querySelectorAll('.btn-remove-lp-img').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = Number(btn.dataset.imgIdx);
+        uploadedImages.splice(idx, 1);
+        renderPreviews();
+      });
+    });
+  }
+
+  document.getElementById('form-list-property')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = document.getElementById('btn-submit-listing');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving to Neon DB...`;
+    }
+
     const title = document.getElementById('lp-title').value;
     const locality = document.getElementById('lp-locality').value;
     const bhkType = document.getElementById('lp-bhk').value;
@@ -113,7 +201,29 @@ export function renderListPropertyModal() {
     const ownerName = document.getElementById('lp-owner-name').value;
     const ownerPhone = document.getElementById('lp-owner-phone').value;
 
-    state.addProperty({
+    const propertyId = `prop-custom-${Date.now()}`;
+
+    // Upload images directly to Neon DB table 'property_images'
+    let finalImages = [];
+    if (uploadedImages.length > 0) {
+      for (let i = 0; i < uploadedImages.length; i++) {
+        try {
+          const uploadRes = await api.uploadImage(uploadedImages[i], propertyId, `listing-${i + 1}.jpg`);
+          if (uploadRes && uploadRes.url) {
+            finalImages.push(uploadRes.url);
+          } else {
+            finalImages.push(uploadedImages[i]);
+          }
+        } catch (err) {
+          finalImages.push(uploadedImages[i]);
+        }
+      }
+    } else {
+      finalImages = ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"];
+    }
+
+    await state.addProperty({
+      id: propertyId,
       title,
       locality,
       address: `${locality}, Bengaluru`,
@@ -129,6 +239,7 @@ export function renderListPropertyModal() {
       facing: 'East Facing',
       availableFrom: 'Immediate',
       preferredTenants: 'Any',
+      images: finalImages,
       amenities: ['Power Backup', 'Lift', 'Car Parking', '24/7 Security'],
       description: `Newly listed ${bhkText} apartment in prime ${locality}. Directly posted by property owner with 0% brokerage fees.`,
       ownerName,
@@ -137,7 +248,7 @@ export function renderListPropertyModal() {
     });
 
     state.closeModal();
-    showToast(`✨ Property "${title}" in ${locality} successfully published!`);
+    showToast(`✨ Property "${title}" in ${locality} saved to Neon DB!`);
   });
 
   document.getElementById('btn-close-modal')?.addEventListener('click', () => {

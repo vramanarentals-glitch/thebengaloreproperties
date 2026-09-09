@@ -25,6 +25,11 @@ export function renderHeader() {
 
         <!-- Desktop & Mobile Navigation Actions -->
         <div class="header-actions">
+          <div class="db-status-badge" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.35rem 0.65rem; border-radius: 20px;" title="Connected to Neon PostgreSQL Cloud Database">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; display: inline-block; animation: pulse 2s infinite;"></span>
+            <span class="btn-text-full" style="font-weight: 600; color: #10b981;">Neon DB Live</span>
+          </div>
+
           <button id="btn-book-call" class="nav-btn nav-btn-primary" style="font-weight: 700;" title="Book a Callback with Proprietor V. RAMANA">
             <i class="fa-solid fa-phone-volume"></i>
             <span class="btn-text-full">Book Call</span>

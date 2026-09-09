@@ -195,7 +195,7 @@ export function renderAuthModal() {
   });
 
   // User Sign In Submit
-  document.getElementById('form-user-login')?.addEventListener('submit', (e) => {
+  document.getElementById('form-user-login')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const emailRaw = document.getElementById('user-login-email')?.value || '';
     const passRaw = document.getElementById('user-login-pass')?.value || '';
@@ -203,7 +203,13 @@ export function renderAuthModal() {
     const email = sanitizeHTML(emailRaw.trim());
     const pass = passRaw.trim();
 
-    const res = state.loginUser(email, pass);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+    }
+
+    const res = await state.loginUser(email, pass);
     if (res.success) {
       if (res.isAdmin) {
         showToast('⚡ Logged in as Proprietor Admin!');
@@ -211,12 +217,16 @@ export function renderAuthModal() {
         showToast(`🎉 Welcome back, ${res.user.name}!`);
       }
     } else {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Secure Sign In';
+      }
       showToast(`❌ ${res.message}`);
     }
   });
 
   // User Registration Submit
-  document.getElementById('form-user-register')?.addEventListener('submit', (e) => {
+  document.getElementById('form-user-register')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nameRaw = document.getElementById('user-reg-name')?.value || '';
     const emailRaw = document.getElementById('user-reg-email')?.value || '';
@@ -233,10 +243,20 @@ export function renderAuthModal() {
       return;
     }
 
-    const res = state.registerUser({ name, email, password: pass });
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Account in DB...';
+    }
+
+    const res = await state.registerUser({ name, email, password: pass });
     if (res.success) {
       showToast(`🎉 Account created! Welcome, ${res.user.name}.`);
     } else {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create My Account';
+      }
       showToast(`❌ ${res.message}`);
     }
   });

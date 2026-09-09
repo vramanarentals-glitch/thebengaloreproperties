@@ -1,8 +1,9 @@
 import { PROPERTIES_DATA } from '../data/properties.js';
+import { api } from './api.js';
 
 class AppState {
   constructor() {
-    // Local Storage Properties
+    // Local Storage Properties fallback
     const savedProps = localStorage.getItem('tbp_properties');
     this.allProperties = savedProps ? JSON.parse(savedProps) : [...PROPERTIES_DATA];
     this.filteredProperties = [...this.allProperties];
@@ -29,7 +30,7 @@ class AppState {
 
     // Theme Mode (Default to Light Mode)
     const savedTheme = localStorage.getItem('tbp_theme') || 'light';
-    this.theme = 'light';
+    this.theme = savedTheme;
 
     // Business Contact Details (V. RAMANA / The Bangalore Properties)
     const savedContactInfo = localStorage.getItem('tbp_contact_info');
@@ -103,14 +104,66 @@ class AppState {
       }
     ];
 
+    this.dbStatus = 'connecting'; // 'connected' | 'offline'
     this.listeners = [];
+
+    // Automatically load live data from Neon PostgreSQL
+    this.initFromDb();
+  }
+
+  // Fetch live state from Neon DB API
+  async initFromDb() {
+    try {
+      // 1. Check health
+      const health = await api.getHealth();
+      if (health && health.status === 'ok') {
+        this.dbStatus = 'connected';
+      }
+
+      // 2. If admin token stored, verify validity
+      const token = localStorage.getItem('tbp_admin_token');
+      if (token) {
+        const isValid = await api.verifyAdminToken();
+        if (!isValid) {
+          this.isAdminLoggedIn = false;
+          localStorage.removeItem('tbp_admin_auth');
+          localStorage.removeItem('tbp_admin_token');
+        }
+      }
+
+      // 3. Fetch properties from Neon DB
+      const dbProps = await api.getProperties();
+      if (dbProps && Array.isArray(dbProps) && dbProps.length > 0) {
+        this.allProperties = dbProps;
+        this.saveProperties();
+      }
+
+      // 4. Fetch leads from Neon DB
+      const dbLeads = await api.getLeads();
+      if (dbLeads && Array.isArray(dbLeads)) {
+        this.leads = dbLeads;
+        localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
+      }
+
+      // 5. Fetch contact settings
+      const dbContact = await api.getContactInfo();
+      if (dbContact) {
+        this.contactInfo = dbContact;
+        localStorage.setItem('tbp_contact_info', JSON.stringify(this.contactInfo));
+      }
+
+      this.notify();
+    } catch (e) {
+      console.warn('Could not sync with Neon DB on start:', e);
+      this.dbStatus = 'offline';
+      this.notify();
+    }
   }
 
   // Auth Methods: Email & Password, Google OAuth
 
   handleGoogleCredential(credentialResponse) {
     try {
-      // Decode Google ID Token JWT payload
       const base64Url = credentialResponse.credential.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
@@ -154,6 +207,10 @@ class AppState {
     this.isAdminLoggedIn = false;
     localStorage.removeItem('tbp_user');
     localStorage.removeItem('tbp_admin_auth');
+    localStorage.removeItem('tbp_admin_token');
+    if (window.location.pathname === '/admin') {
+      history.replaceState(null, '', '/');
+    }
     this.notify();
   }
 
@@ -235,18 +292,28 @@ class AppState {
   openModal(modalType, propertyData = null) {
     this.activeModal = modalType;
     this.activeProperty = propertyData;
+    if (modalType === 'admin-portal') {
+      if (window.location.pathname !== '/admin' && !window.location.hash.includes('admin')) {
+        history.pushState(null, '', '/admin');
+      }
+    }
     this.notify();
   }
 
   closeModal() {
+    if (this.activeModal === 'admin-portal') {
+      if (window.location.pathname === '/admin') {
+        history.replaceState(null, '', '/');
+      }
+    }
     this.activeModal = null;
     this.activeProperty = null;
     this.notify();
   }
 
-  addProperty(newProp) {
+  async addProperty(newProp) {
     const propertyWithId = {
-      id: `prop-custom-${Date.now()}`,
+      id: newProp.id || `prop-custom-${Date.now()}`,
       isVerified: true,
       isFeatured: true,
       zeroBrokerage: true,
@@ -255,9 +322,26 @@ class AppState {
       ],
       ...newProp
     };
+
+    // Optimistically update frontend state
     this.allProperties.unshift(propertyWithId);
     this.saveProperties();
     this.notify();
+
+    // Persist directly to Neon DB
+    try {
+      const created = await api.createProperty(propertyWithId);
+      if (created && created.id) {
+        const idx = this.allProperties.findIndex(p => p.id === propertyWithId.id);
+        if (idx !== -1) {
+          this.allProperties[idx] = created;
+          this.saveProperties();
+          this.notify();
+        }
+      }
+    } catch (e) {
+      console.error('Failed to persist property to Neon DB:', e);
+    }
   }
 
   saveProperties() {
@@ -268,8 +352,17 @@ class AppState {
     }
   }
 
-  resetPropertiesToDefault() {
-    this.allProperties = [...PROPERTIES_DATA];
+  async resetPropertiesToDefault() {
+    try {
+      const resetList = await api.resetProperties();
+      if (resetList && Array.isArray(resetList)) {
+        this.allProperties = resetList;
+      } else {
+        this.allProperties = [...PROPERTIES_DATA];
+      }
+    } catch (e) {
+      this.allProperties = [...PROPERTIES_DATA];
+    }
     this.saveProperties();
     this.notify();
   }
@@ -283,8 +376,8 @@ class AppState {
       result = result.filter(p =>
         p.title.toLowerCase().includes(q) ||
         p.locality.toLowerCase().includes(q) ||
-        p.address.toLowerCase().includes(q) ||
-        p.bhk.toLowerCase().includes(q)
+        (p.address && p.address.toLowerCase().includes(q)) ||
+        (p.bhk && p.bhk.toLowerCase().includes(q))
       );
     }
 
@@ -319,7 +412,7 @@ class AppState {
     // Amenities
     if (this.filters.amenities.length > 0) {
       result = result.filter(p =>
-        this.filters.amenities.every(a => p.amenities.includes(a))
+        this.filters.amenities.every(a => p.amenities && p.amenities.includes(a))
       );
     }
 
@@ -337,131 +430,74 @@ class AppState {
     this.filteredProperties = result;
   }
 
-  // User Registration & Login Methods
-  registerUser({ name, email, password }) {
+  // User Registration & Login Methods with Neon DB
+  async registerUser({ name, email, password }) {
     if (!name || !email || !password) {
       return { success: false, message: 'Please fill in all required fields.' };
     }
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPass = password.trim();
 
-    if (cleanEmail === 'vramanarentals@gmail.com') {
-      return { success: false, message: 'This email is reserved for Admin login.' };
+    const res = await api.registerUser({ name, email, password });
+    if (res && res.success && res.user) {
+      this.currentUser = res.user;
+      localStorage.setItem('tbp_user', JSON.stringify(res.user));
+      this.closeModal();
+      this.notify();
+      return res;
     }
 
-    const existing = this.registeredUsers.find(u => u.email === cleanEmail);
-    if (existing) {
-      return { success: false, message: 'An account with this email already exists. Please sign in.' };
-    }
-
-    const newUser = {
-      id: `usr-${Date.now()}`,
-      name: name.trim(),
-      email: cleanEmail,
-      password: cleanPass,
-      provider: 'Email & Password',
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name.trim())}`
-    };
-
-    this.registeredUsers.push(newUser);
-    localStorage.setItem('tbp_registered_users', JSON.stringify(this.registeredUsers));
-
-    const userSession = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      provider: newUser.provider,
-      avatar: newUser.avatar
-    };
-    this.currentUser = userSession;
-    localStorage.setItem('tbp_user', JSON.stringify(userSession));
-
-    this.closeModal();
-    this.notify();
-    return { success: true, user: userSession };
+    return res || { success: false, message: 'Registration failed.' };
   }
 
-  loginUser(email, password) {
+  async loginUser(email, password) {
     if (!email || !password) {
       return { success: false, message: 'Please enter both email and password.' };
     }
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPass = password.trim();
 
-    // Check if credentials match admin email
-    if (cleanEmail === 'vramanarentals@gmail.com') {
-      const regUser = this.registeredUsers.find(u => u.email === cleanEmail && u.password === cleanPass);
-      if (cleanPass === 'ramana rentals' || regUser) {
-        this.isAdminLoggedIn = true;
+    const res = await api.loginUser(email, password);
+    if (res && res.success && res.user) {
+      this.currentUser = res.user;
+      this.isAdminLoggedIn = Boolean(res.isAdmin);
+      localStorage.setItem('tbp_user', JSON.stringify(res.user));
+      
+      if (res.isAdmin) {
         localStorage.setItem('tbp_admin_auth', 'true');
-        const adminSession = {
-          id: regUser ? regUser.id : 'usr-admin',
-          name: regUser ? regUser.name : 'V. RAMANA (Proprietor)',
-          email: 'vramanarentals@gmail.com',
-          provider: 'Admin Account',
-          avatar: regUser ? regUser.avatar : 'https://api.dicebear.com/7.x/avataaars/svg?seed=VRamana',
-          isAdmin: true
-        };
-        this.currentUser = adminSession;
-        localStorage.setItem('tbp_user', JSON.stringify(adminSession));
-        // Automatically open Admin Portal upon admin login!
+        if (res.token) {
+          localStorage.setItem('tbp_admin_token', res.token);
+        }
         this.activeModal = 'admin-portal';
-        this.notify();
-        return { success: true, user: adminSession, isAdmin: true };
+        if (window.location.pathname !== '/admin') {
+          history.pushState(null, '', '/admin');
+        }
+      } else {
+        localStorage.removeItem('tbp_admin_auth');
+        localStorage.removeItem('tbp_admin_token');
+        this.closeModal();
       }
-    }
-
-    // Check registered users
-    const user = this.registeredUsers.find(u => u.email === cleanEmail && u.password === cleanPass);
-    if (user) {
-      this.isAdminLoggedIn = false;
-      localStorage.removeItem('tbp_admin_auth');
-      const userSession = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        provider: user.provider,
-        avatar: user.avatar,
-        isAdmin: false
-      };
-      this.currentUser = userSession;
-      localStorage.setItem('tbp_user', JSON.stringify(userSession));
-      this.closeModal();
       this.notify();
-      return { success: true, user: userSession, isAdmin: false };
+      return res;
     }
 
-    return { success: false, message: 'Invalid email or password!' };
+    return res || { success: false, message: 'Invalid credentials.' };
   }
 
   // Admin Portal Methods
-  adminLogin(email, password) {
-    if (!email || !password) return false;
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPass = password.trim();
-    if (cleanEmail === 'vramanarentals@gmail.com' && cleanPass === 'ramana rentals') {
-      this.isAdminLoggedIn = true;
-      localStorage.setItem('tbp_admin_auth', 'true');
-      const adminSession = {
-        id: 'usr-admin',
-        name: 'V. RAMANA (Proprietor)',
-        email: 'vramanarentals@gmail.com',
-        provider: 'Admin Account',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=VRamana',
-        isAdmin: true
-      };
-      this.currentUser = adminSession;
-      localStorage.setItem('tbp_user', JSON.stringify(adminSession));
-      this.activeModal = 'admin-portal';
-      this.notify();
-      return true;
-    }
-    return false;
+  async adminLogin(email, password) {
+    const res = await this.loginUser(email, password);
+    return res && res.success && res.isAdmin;
   }
 
   adminLogout() {
     this.isAdminLoggedIn = false;
     localStorage.removeItem('tbp_admin_auth');
+    localStorage.removeItem('tbp_admin_token');
+    if (this.currentUser?.isAdmin) {
+      this.currentUser = null;
+      localStorage.removeItem('tbp_user');
+    }
+    this.closeModal();
+    if (window.location.pathname === '/admin') {
+      history.replaceState(null, '', '/');
+    }
     this.notify();
   }
 
@@ -470,37 +506,41 @@ class AppState {
     this.notify();
   }
 
-  deleteProperty(propertyId) {
+  async deleteProperty(propertyId) {
     this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
     this.saveProperties();
     this.notify();
+    await api.deleteProperty(propertyId);
   }
 
-  togglePropertyFlag(propertyId, flagName) {
+  async togglePropertyFlag(propertyId, flagName) {
     const prop = this.allProperties.find(p => p.id === propertyId);
     if (prop) {
       prop[flagName] = !prop[flagName];
       this.saveProperties();
       this.notify();
+      await api.togglePropertyFlag(propertyId, flagName);
     }
   }
 
-  updateLeadStatus(leadId, newStatus) {
+  async updateLeadStatus(leadId, newStatus) {
     const lead = this.leads.find(l => l.id === leadId);
     if (lead) {
       lead.status = newStatus;
       localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
       this.notify();
+      await api.updateLead(leadId, { status: newStatus });
     }
   }
 
-  deleteLead(leadId) {
+  async deleteLead(leadId) {
     this.leads = this.leads.filter(l => l.id !== leadId);
     localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
     this.notify();
+    await api.deleteLead(leadId);
   }
 
-  addLead(newLead) {
+  async addLead(newLead) {
     const leadObj = {
       id: `lead-${Date.now()}`,
       date: new Date().toISOString().split('T')[0],
@@ -510,9 +550,10 @@ class AppState {
     this.leads.unshift(leadObj);
     localStorage.setItem('tbp_leads', JSON.stringify(this.leads));
     this.notify();
+    await api.createLead(leadObj);
   }
 
-  updateContactInfo(newInfo) {
+  async updateContactInfo(newInfo) {
     this.contactInfo = { ...this.contactInfo, ...newInfo };
     try {
       localStorage.setItem('tbp_contact_info', JSON.stringify(this.contactInfo));
@@ -520,6 +561,7 @@ class AppState {
       console.error('Failed to save contact info to localStorage:', e);
     }
     this.notify();
+    await api.updateContactInfo(this.contactInfo);
   }
 }
 

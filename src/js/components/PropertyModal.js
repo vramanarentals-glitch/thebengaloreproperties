@@ -224,6 +224,17 @@ export function renderPropertyModal() {
       const name = document.getElementById('visit-name').value;
       const phone = document.getElementById('visit-phone').value;
 
+      state.addLead({
+        tenantName: name,
+        tenantPhone: phone,
+        propertyId: p.id,
+        propertyTitle: p.title,
+        locality: p.locality,
+        date: date,
+        status: 'New',
+        notes: `Property tour booked for ${date} at ${selectedSlot}. Property: ${p.title} (${p.locality})`
+      });
+
       state.closeModal();
       showToast(`🎉 Tour Confirmed for ${name}! Appointment scheduled for ${date} at ${selectedSlot}. Confirmation SMS sent to ${phone}.`);
     });

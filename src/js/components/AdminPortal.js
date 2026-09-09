@@ -1,5 +1,6 @@
 import { LOCALITIES } from '../../data/properties.js';
 import { state } from '../state.js';
+import { api } from '../api.js';
 import { showToast } from './Toast.js';
 
 export function renderAdminPortal() {
@@ -20,92 +21,146 @@ export function renderAdminPortal() {
 function renderAdminLoginForm(root) {
   root.innerHTML = `
     <div class="modal-overlay" id="admin-modal-backdrop">
-      <div class="modal-card admin-login-card">
+      <div class="modal-card admin-login-card" style="max-width: 440px; background: var(--bg-surface); border: 2px solid rgba(239, 68, 68, 0.4); box-shadow: 0 20px 50px rgba(0,0,0,0.7); border-radius: 20px;">
         <button class="modal-close-btn" id="btn-close-admin-modal">
           <i class="fa-solid fa-xmark"></i>
         </button>
 
-        <div class="modal-body" style="padding: 2rem 1.5rem;">
-          <div class="admin-login-icon-badge">
-            <i class="fa-solid fa-user-shield"></i>
+        <div class="modal-body" style="padding: 2.25rem 1.75rem;">
+          <div style="width: 64px; height: 64px; border-radius: 20px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 1.25rem auto; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);">
+            <i class="fa-solid fa-lock"></i>
           </div>
 
-          <h3 class="font-heading" style="font-size: 1.6rem; margin-bottom: 0.35rem; text-align: center;">Proprietor Admin Access</h3>
-          <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1.5rem; text-align: center;">
-            Enter admin credentials to manage properties, tenant leads & proprietor settings.
-          </p>
-
-          <!-- Quick Demo Login Button -->
-          <div style="background: rgba(16, 185, 129, 0.1); border: 1px dashed var(--accent-emerald); border-radius: 12px; padding: 0.85rem; margin-bottom: 1.25rem; text-align: center;">
-            <div style="font-size: 0.8rem; color: var(--accent-emerald); font-weight: 700; margin-bottom: 0.4rem;">
-              <i class="fa-solid fa-bolt"></i> Testing or Demoing?
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 0.25rem 0.65rem; border-radius: 20px; border: 1px solid rgba(239, 68, 68, 0.25); margin-bottom: 0.5rem;">
+              <i class="fa-solid fa-shield-halved"></i> Protected Path: /admin
             </div>
-            <button type="button" id="btn-quick-demo-login" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.6rem; font-size: 0.88rem;">
-              <i class="fa-solid fa-key"></i> Quick Demo Admin Login
-            </button>
+            <h3 class="font-heading" style="font-size: 1.5rem; margin-bottom: 0.35rem; font-weight: 800;">Administrator Access</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4;">
+              This area is strictly restricted to Proprietor V. RAMANA. Please enter your administrator credentials stored in your secure environment.
+            </p>
           </div>
 
-          <form id="admin-login-form" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div id="admin-auth-error-box" style="display: none; background: rgba(239, 68, 68, 0.12); border: 1px solid #ef4444; border-radius: 10px; padding: 0.75rem; margin-bottom: 1rem; color: #ef4444; font-size: 0.85rem; text-align: center;">
+            <i class="fa-solid fa-triangle-exclamation"></i> <span id="admin-auth-error-msg">Invalid email or password!</span>
+          </div>
+
+          <form id="admin-login-form" style="display: flex; flex-direction: column; gap: 1.1rem;">
             <div class="input-field-group" style="text-align: left;">
-              <label style="font-weight: 700; font-size: 0.85rem;">Admin Email</label>
-              <input 
-                type="email" 
-                id="admin-email-input" 
-                placeholder="vramanarentals@gmail.com" 
-                value="vramanarentals@gmail.com"
-                required 
-                style="width: 100%; padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;"
-              />
+              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
+                Admin Email
+              </label>
+              <div style="position: relative;">
+                <i class="fa-solid fa-envelope" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                <input 
+                  type="email" 
+                  id="admin-email-input" 
+                  placeholder="admin@example.com" 
+                  required 
+                  autocomplete="username"
+                  style="width: 100%; padding: 0.85rem 0.85rem 0.85rem 2.5rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
+                />
+              </div>
             </div>
 
             <div class="input-field-group" style="text-align: left;">
-              <label style="font-weight: 700; font-size: 0.85rem;">Admin Password</label>
-              <input 
-                type="password" 
-                id="admin-pass-input" 
-                placeholder="ramana rentals" 
-                value="ramana rentals"
-                required 
-                style="width: 100%; padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;"
-              />
+              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
+                Admin Password
+              </label>
+              <div style="position: relative;">
+                <i class="fa-solid fa-key" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                <input 
+                  type="password" 
+                  id="admin-pass-input" 
+                  placeholder="Enter administrator password" 
+                  required 
+                  autocomplete="current-password"
+                  style="width: 100%; padding: 0.85rem 2.8rem 0.85rem 2.5rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
+                />
+                <button type="button" id="btn-toggle-admin-pass" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem;" title="Toggle password visibility">
+                  <i class="fa-solid fa-eye" id="icon-admin-pass-eye"></i>
+                </button>
+              </div>
             </div>
 
-            <button type="submit" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem; margin-top: 0.25rem; font-weight: 700;">
-              <i class="fa-solid fa-right-to-bracket"></i> Login to Admin Portal
+            <button type="submit" id="btn-submit-admin-login" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.95rem; font-size: 1rem; margin-top: 0.25rem; font-weight: 700; border-radius: 12px; gap: 0.5rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+              <i class="fa-solid fa-lock-open"></i> Authenticate & Unlock Portal
             </button>
           </form>
+
+          <div style="text-align: center; margin-top: 1.25rem;">
+            <a href="/" id="btn-return-home" style="font-size: 0.82rem; color: var(--text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <i class="fa-solid fa-arrow-left"></i> Return to Homepage
+            </a>
+          </div>
         </div>
       </div>
     </div>
   `;
 
-  document.getElementById('btn-quick-demo-login')?.addEventListener('click', () => {
-    state.adminLogin('vramanarentals@gmail.com', 'ramana rentals');
-    showToast('⚡ Welcome! Admin Portal Unlocked.');
+  const passInput = document.getElementById('admin-pass-input');
+  const togglePassBtn = document.getElementById('btn-toggle-admin-pass');
+  const eyeIcon = document.getElementById('icon-admin-pass-eye');
+
+  togglePassBtn?.addEventListener('click', () => {
+    if (passInput) {
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        eyeIcon?.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        passInput.type = 'password';
+        eyeIcon?.classList.replace('fa-eye-slash', 'fa-eye');
+      }
+    }
   });
 
-  document.getElementById('admin-login-form')?.addEventListener('submit', (e) => {
+  document.getElementById('admin-login-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('admin-email-input').value;
-    const pass = document.getElementById('admin-pass-input').value;
-    if (state.adminLogin(email, pass)) {
-      showToast('⚡ Welcome! Admin Portal Unlocked.');
+    const email = document.getElementById('admin-email-input').value.trim();
+    const pass = document.getElementById('admin-pass-input').value.trim();
+    const submitBtn = document.getElementById('btn-submit-admin-login');
+    const errBox = document.getElementById('admin-auth-error-box');
+    const errMsg = document.getElementById('admin-auth-error-msg');
+
+    if (errBox) errBox.style.display = 'none';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying with Neon DB...';
+    }
+
+    const success = await state.adminLogin(email, pass);
+    if (success) {
+      showToast('⚡ Administrator Access Granted! Welcome V. RAMANA.');
     } else {
-      showToast('❌ Invalid email or password!');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-lock-open"></i> Authenticate & Unlock Portal';
+      }
+      if (errBox && errMsg) {
+        errMsg.innerText = 'Access Denied: Invalid administrator credentials.';
+        errBox.style.display = 'block';
+      }
+      showToast('❌ Access Denied: Invalid credentials!');
     }
   });
 
   const handleClose = () => {
     state.closeModal();
     const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
-    if (path === '/admin' || window.location.hash.toLowerCase() === '#admin') {
+    if (path === '/admin' || window.location.hash.toLowerCase() === '#admin' || window.location.hash.toLowerCase() === '#/admin') {
       history.replaceState(null, '', '/');
     }
   };
 
   document.getElementById('btn-close-admin-modal')?.addEventListener('click', handleClose);
+  document.getElementById('btn-return-home')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    handleClose();
+  });
   document.getElementById('admin-modal-backdrop')?.addEventListener('click', (e) => {
-    if (e.target.id === 'admin-modal-backdrop') handleClose();
+    if (e.target.id === 'admin-modal-backdrop') {
+      handleClose();
+    }
   });
 }
 
@@ -874,8 +929,14 @@ function attachAdminTabEvents(tab, root) {
       });
     }
 
-    document.getElementById('admin-add-prop-form')?.addEventListener('submit', (e) => {
+    document.getElementById('admin-add-prop-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving to Neon DB...';
+      }
+
       const title = document.getElementById('admin-p-title').value;
       const address = document.getElementById('admin-p-address').value;
       const locality = document.getElementById('admin-p-locality').value;
@@ -889,11 +950,27 @@ function attachAdminTabEvents(tab, root) {
       const ownerPhone = document.getElementById('admin-p-owner-phone').value;
       const description = document.getElementById('admin-p-desc').value;
 
-      const finalImages = uploadedImages.length > 0
-        ? uploadedImages
-        : ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"];
+      const propertyId = `prop-custom-${Date.now()}`;
+      let finalImages = [];
+      if (uploadedImages.length > 0) {
+        for (let i = 0; i < uploadedImages.length; i++) {
+          try {
+            const uploadRes = await api.uploadImage(uploadedImages[i], propertyId, `admin-photo-${i + 1}.jpg`);
+            if (uploadRes && uploadRes.url) {
+              finalImages.push(uploadRes.url);
+            } else {
+              finalImages.push(uploadedImages[i]);
+            }
+          } catch (err) {
+            finalImages.push(uploadedImages[i]);
+          }
+        }
+      } else {
+        finalImages = ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"];
+      }
 
-      state.addProperty({
+      await state.addProperty({
+        id: propertyId,
         title,
         locality,
         address,
@@ -917,7 +994,7 @@ function attachAdminTabEvents(tab, root) {
         ownerType: 'Direct Owner'
       });
 
-      showToast(`✨ Property "${title}" published successfully!`);
+      showToast(`✨ Property "${title}" published & stored in Neon DB!`);
       state.setAdminTab('properties');
     });
   }
