@@ -6,7 +6,7 @@ export function renderHeader() {
 
   const favCount = state.favorites.length;
   const isDark = state.theme === 'dark';
-  const isAdmin = state.isAdminLoggedIn || state.currentUser?.email === 'vramanarentals@gmail.com';
+  const isAdmin = Boolean(state.currentUser && (state.isAdminLoggedIn || state.currentUser?.email === 'vramanarentals@gmail.com'));
 
   root.innerHTML = `
     <header class="header-nav">

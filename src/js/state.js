@@ -82,7 +82,7 @@ class AppState {
 
     // Admin Portal State
     const savedAdminAuth = localStorage.getItem('tbp_admin_auth') === 'true';
-    this.isAdminLoggedIn = savedAdminAuth;
+    this.isAdminLoggedIn = Boolean(this.currentUser && (savedAdminAuth || this.currentUser?.email === 'vramanarentals@gmail.com'));
     this.adminTab = 'dashboard'; // 'dashboard' | 'properties' | 'add-property' | 'leads' | 'settings'
 
     // Tenant Leads / Inquiries
@@ -477,15 +477,11 @@ class AppState {
         if (res.token) {
           localStorage.setItem('tbp_admin_token', res.token);
         }
-        this.activeModal = 'admin-portal';
-        if (window.location.pathname !== '/admin') {
-          history.pushState(null, '', '/admin');
-        }
       } else {
         localStorage.removeItem('tbp_admin_auth');
         localStorage.removeItem('tbp_admin_token');
-        this.closeModal();
       }
+      this.closeModal();
       this.notify();
       return res;
     }
