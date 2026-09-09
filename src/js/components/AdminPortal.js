@@ -852,8 +852,12 @@ function attachAdminTabEvents(tab, root) {
       btn.addEventListener('click', async () => {
         const propId = btn.dataset.delProp;
         if (confirm('Are you sure you want to delete this property listing?')) {
-          await state.deleteProperty(propId);
-          showToast('🗑️ Property deleted successfully.');
+          const res = await state.deleteProperty(propId);
+          if (res && res.success) {
+            showToast('🗑️ Property deleted successfully from Cloud DB.');
+          } else {
+            showToast(`❌ Delete failed: ${res?.error || 'Unauthorized'}. Please re-login as Admin.`);
+          }
         }
       });
     });

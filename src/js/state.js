@@ -109,6 +109,16 @@ class AppState {
 
     // Automatically load live data from Neon PostgreSQL
     this.initFromDb();
+
+    // Auto-sync with cloud DB periodically & when page gains focus
+    setInterval(() => this.initFromDb(), 30000);
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this.initFromDb();
+        }
+      });
+    }
   }
 
   // Fetch live state from Neon DB API
@@ -512,14 +522,20 @@ class AppState {
       this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
       this.saveProperties();
       this.notify();
-      return true;
+      return { success: true };
     } else {
-      console.error('Failed to delete property from backend:', res);
-      // Still filter locally as fallback if needed or refetch
-      this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
-      this.saveProperties();
-      this.notify();
-      return false;
+      console.error('Failed to delete property from Cloud DB:', res);
+      // Re-sync with Cloud DB to ensure local state reflects reality
+      const dbProps = await api.getProperties();
+      if (dbProps && Array.isArray(dbProps)) {
+        this.allProperties = dbProps;
+        this.saveProperties();
+        this.notify();
+      }
+      return { 
+        success: false, 
+        error: res?.error || 'Database delete failed. Please check admin login.' 
+      };
     }
   }
 

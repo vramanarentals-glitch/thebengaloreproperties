@@ -118,11 +118,15 @@ export const api = {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
-      if (!res.ok) throw new Error(`Failed to delete property: ${res.status}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        console.error(`Failed to delete property: ${res.status}`, errData);
+        return { success: false, status: res.status, error: errData.error || `HTTP error ${res.status}` };
+      }
       return await res.json();
     } catch (err) {
       console.error('Failed to delete property in DB:', err);
-      return null;
+      return { success: false, error: err.message };
     }
   },
 
