@@ -2,6 +2,7 @@ import { LOCALITIES } from '../../data/properties.js';
 import { state } from '../state.js';
 import { api } from '../api.js';
 import { showToast } from './Toast.js';
+import { compressImage, processAndCompressImages } from '../utils/imageCompressor.js';
 
 export function renderAdminPortal() {
   if (state.activeModal !== 'admin-portal') return;
@@ -130,6 +131,10 @@ function renderAdminLoginForm(root) {
 
     const success = await state.adminLogin(email, pass);
     if (success) {
+      if (state.pendingAdminTab) {
+        state.setAdminTab(state.pendingAdminTab);
+        state.pendingAdminTab = null;
+      }
       showToast('⚡ Administrator Access Granted! Welcome V. RAMANA.');
     } else {
       if (submitBtn) {
@@ -581,19 +586,19 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
           <div class="responsive-form-row">
             <div class="input-field-group">
               <label>Monthly Rent (₹)</label>
-              <input type="number" id="admin-p-price" placeholder="45000" min="5000" step="1000" required />
+              <input type="number" id="admin-p-price" placeholder="45000" min="5000" step="1000" inputmode="numeric" required />
             </div>
 
             <div class="input-field-group">
               <label>Security Deposit (₹)</label>
-              <input type="number" id="admin-p-deposit" placeholder="180000" min="10000" step="5000" required />
+              <input type="number" id="admin-p-deposit" placeholder="180000" min="10000" step="5000" inputmode="numeric" required />
             </div>
           </div>
 
           <div class="responsive-form-row">
             <div class="input-field-group">
               <label>Built-up Area (Sq Ft)</label>
-              <input type="number" id="admin-p-sqft" placeholder="1350" required />
+              <input type="number" id="admin-p-sqft" placeholder="1350" inputmode="numeric" required />
             </div>
 
             <div class="input-field-group">
@@ -614,20 +619,33 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
 
             <div class="input-field-group">
               <label>Owner Phone</label>
-              <input type="tel" id="admin-p-owner-phone" placeholder="e.g. +91 98450 12345" required />
+              <input type="tel" id="admin-p-owner-phone" placeholder="e.g. +91 98450 12345" inputmode="tel" required />
             </div>
           </div>
 
           <div class="input-field-group">
-            <label>Upload Property Photos</label>
-            <input type="file" id="admin-p-file" accept="image/*" multiple style="display: none;" />
-            <div id="admin-p-upload-area" class="admin-dropzone-box">
+            <label style="font-weight: 700; display: block; margin-bottom: 0.35rem;">
+              Upload Property Photos <span style="font-weight: 400; font-size: 0.8rem; color: var(--accent-emerald);">(Mobile Camera & Laptop HD)</span>
+            </label>
+            <input 
+              type="file" 
+              id="admin-p-file" 
+              accept="image/*" 
+              multiple 
+              style="position: absolute; width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; z-index: -1;" 
+            />
+            <label for="admin-p-file" id="admin-p-upload-area" class="admin-dropzone-box" style="display: block; cursor: pointer; -webkit-tap-highlight-color: transparent;">
               <div style="font-size: 2.2rem; color: var(--accent-emerald); margin-bottom: 0.4rem;">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
               </div>
-              <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">Click or Drag & Drop Property Pictures</div>
-              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Supports JPG, PNG, WEBP</div>
-            </div>
+              <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">
+                Tap to Select from Mobile Camera / Gallery or Drag & Drop
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                ⚡ Auto-optimizes phone camera photos (JPEG, PNG, HEIC, WEBP)
+              </div>
+            </label>
+            <div id="admin-p-upload-status" style="display: none; margin-top: 0.5rem; font-size: 0.85rem; color: var(--accent-emerald); font-weight: 600; text-align: center;"></div>
             <div id="admin-p-image-preview" style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.75rem;"></div>
           </div>
 
@@ -867,9 +885,8 @@ function attachAdminTabEvents(tab, root) {
     const fileInput = document.getElementById('admin-p-file');
     const uploadArea = document.getElementById('admin-p-upload-area');
     const previewContainer = document.getElementById('admin-p-image-preview');
+    const statusBox = document.getElementById('admin-p-upload-status');
     let uploadedImages = [];
-
-    uploadArea?.addEventListener('click', () => fileInput?.click());
 
     uploadArea?.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -896,16 +913,37 @@ function attachAdminTabEvents(tab, root) {
       }
     });
 
-    function processFiles(files) {
-      files.forEach(file => {
-        if (!file.type.startsWith('image/')) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          uploadedImages.push(event.target.result);
-          renderPreviews();
-        };
-        reader.readAsDataURL(file);
-      });
+    async function processFiles(files) {
+      if (!files || files.length === 0) return;
+      if (statusBox) {
+        statusBox.style.display = 'block';
+        statusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Optimizing mobile photos for fast upload...';
+      }
+
+      try {
+        const compressedList = await processAndCompressImages(files, (curr, total) => {
+          if (statusBox) {
+            statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Optimizing photo ${curr} of ${total}...`;
+          }
+        });
+
+        compressedList.forEach(item => {
+          uploadedImages.push(item);
+        });
+
+        if (statusBox) {
+          statusBox.innerHTML = `✅ ${compressedList.length} photo(s) optimized & ready!`;
+          setTimeout(() => {
+            if (statusBox) statusBox.style.display = 'none';
+          }, 2500);
+        }
+      } catch (err) {
+        console.error('Error processing mobile images:', err);
+        showToast('⚠️ Could not process image, please try another file.');
+        if (statusBox) statusBox.style.display = 'none';
+      }
+
+      renderPreviews();
     }
 
     function renderPreviews() {
@@ -914,17 +952,23 @@ function attachAdminTabEvents(tab, root) {
         previewContainer.innerHTML = '';
         return;
       }
-      previewContainer.innerHTML = uploadedImages.map((img, idx) => `
-        <div style="position: relative; display: inline-block;">
-          <img src="${img}" style="width: 84px; height: 84px; border-radius: 12px; object-fit: cover; border: 2px solid var(--accent-emerald);" />
-          <button type="button" class="btn-remove-img" data-img-idx="${idx}" style="position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; background: #ef4444; color: #fff; border: none; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.4);" title="Remove Image">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-      `).join('');
+      previewContainer.innerHTML = uploadedImages.map((imgItem, idx) => {
+        const src = typeof imgItem === 'string' ? imgItem : imgItem.dataUrl;
+        const sizeKb = imgItem.compressedSize ? `${Math.round(imgItem.compressedSize / 1024)} KB` : '';
+        return `
+          <div style="position: relative; display: inline-block; margin: 4px;">
+            <img src="${src}" style="width: 84px; height: 84px; border-radius: 12px; object-fit: cover; border: 2px solid var(--accent-emerald); display: block;" />
+            ${sizeKb ? `<span style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.75); color: #fff; font-size: 0.65rem; padding: 1px 4px; border-radius: 4px; font-weight: 700;">${sizeKb}</span>` : ''}
+            <button type="button" class="btn-remove-img" data-img-idx="${idx}" style="position: absolute; top: -8px; right: -8px; width: 28px; height: 28px; border-radius: 50%; background: #ef4444; color: #fff; border: 2px solid #fff; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.5); z-index: 10; touch-action: manipulation;" title="Remove Image">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
 
       previewContainer.querySelectorAll('[data-img-idx]').forEach(btn => {
         btn.addEventListener('click', (e) => {
+          e.preventDefault();
           e.stopPropagation();
           const idx = Number(btn.dataset.imgIdx);
           uploadedImages.splice(idx, 1);
@@ -958,19 +1002,33 @@ function attachAdminTabEvents(tab, root) {
       let finalImages = [];
       if (uploadedImages.length > 0) {
         for (let i = 0; i < uploadedImages.length; i++) {
+          const imgItem = uploadedImages[i];
+          const dataUrl = typeof imgItem === 'string' ? imgItem : imgItem.dataUrl;
+          const fileName = (typeof imgItem === 'object' && imgItem.fileName) ? imgItem.fileName : `admin-photo-${i + 1}.jpg`;
+          const mimeType = (typeof imgItem === 'object' && imgItem.mimeType) ? imgItem.mimeType : 'image/jpeg';
+
+          if (submitBtn) {
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading photo ${i + 1} of ${uploadedImages.length}...`;
+          }
+
           try {
-            const uploadRes = await api.uploadImage(uploadedImages[i], propertyId, `admin-photo-${i + 1}.jpg`);
+            const uploadRes = await api.uploadImage(dataUrl, propertyId, fileName, mimeType);
             if (uploadRes && uploadRes.url) {
               finalImages.push(uploadRes.url);
             } else {
-              finalImages.push(uploadedImages[i]);
+              finalImages.push(dataUrl);
             }
           } catch (err) {
-            finalImages.push(uploadedImages[i]);
+            console.warn('Image upload fallback to dataUrl:', err);
+            finalImages.push(dataUrl);
           }
         }
       } else {
         finalImages = ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"];
+      }
+
+      if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Storing in Neon DB...';
       }
 
       await state.addProperty({

@@ -30,6 +30,13 @@ export function renderHeader() {
             <span class="btn-text-full" style="font-weight: 600; color: #10b981;">Neon DB Live</span>
           </div>
 
+          <!-- Dedicated Mobile & Desktop Upload Property Button -->
+          <button id="btn-header-upload-prop" class="nav-btn btn-upload-shortcut" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(99, 102, 241, 0.2)); border: 1.5px solid var(--accent-emerald); color: var(--accent-emerald); font-weight: 800; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);" title="Upload & Post a Property from Mobile or Laptop">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span class="btn-text-full">+ Upload Property</span>
+            <span class="btn-text-mobile">+ Upload</span>
+          </button>
+
           <button id="btn-book-call" class="nav-btn nav-btn-primary" style="font-weight: 700;" title="Book a Callback with Proprietor V. RAMANA">
             <i class="fa-solid fa-phone-volume"></i>
             <span class="btn-text-full">Book Call</span>
@@ -77,6 +84,16 @@ export function renderHeader() {
   `;
 
   // Attach Event Listeners
+  document.getElementById('btn-header-upload-prop')?.addEventListener('click', () => {
+    if (isAdmin) {
+      state.setAdminTab('add-property');
+      state.openModal('admin-portal');
+    } else {
+      state.pendingAdminTab = 'add-property';
+      state.openModal('admin-portal');
+    }
+  });
+
   document.getElementById('btn-header-auth')?.addEventListener('click', () => {
     state.openModal('auth-signin');
   });
