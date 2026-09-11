@@ -126,7 +126,7 @@ function renderAdminLoginForm(root) {
     if (errBox) errBox.style.display = 'none';
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying with Neon DB...';
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying credentials...';
     }
 
     const success = await state.adminLogin(email, pass);
@@ -982,7 +982,7 @@ function attachAdminTabEvents(tab, root) {
       const submitBtn = e.target.querySelector('button[type="submit"]');
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving to Neon DB...';
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving property...';
       }
 
       const title = document.getElementById('admin-p-title').value;
@@ -1028,7 +1028,7 @@ function attachAdminTabEvents(tab, root) {
       }
 
       if (submitBtn) {
-        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Storing in Neon DB...';
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Storing property...';
       }
 
       await state.addProperty({
@@ -1056,7 +1056,7 @@ function attachAdminTabEvents(tab, root) {
         ownerType: 'Direct Owner'
       });
 
-      showToast(`✨ Property "${title}" published & stored in Neon DB!`);
+      showToast(`✨ Property "${title}" published successfully!`);
       state.setAdminTab('properties');
     });
   }

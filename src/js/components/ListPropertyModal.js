@@ -24,7 +24,7 @@ export function renderListPropertyModal() {
             </div>
             <div>
               <h3 class="font-heading" style="font-size: 1.5rem;">List Your Property in Bengaluru</h3>
-              <p style="font-size: 0.85rem; color: var(--text-secondary);">Post your 0% brokerage rental listing & sync directly with our Neon PostgreSQL cloud database.</p>
+              <p style="font-size: 0.85rem; color: var(--text-secondary);">Post your 0% brokerage rental listing and reach thousands of verified tenants across Bangalore.</p>
             </div>
           </div>
 
@@ -223,7 +223,7 @@ export function renderListPropertyModal() {
     const submitBtn = document.getElementById('btn-submit-listing');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving to Neon DB...`;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving listing...`;
     }
 
     const title = document.getElementById('lp-title').value;
@@ -298,7 +298,7 @@ export function renderListPropertyModal() {
     });
 
     state.closeModal();
-    showToast(`✨ Property "${title}" in ${locality} saved to Neon DB!`);
+    showToast(`✨ Property "${title}" in ${locality} listed successfully!`);
   });
 
   document.getElementById('btn-close-modal')?.addEventListener('click', () => {
