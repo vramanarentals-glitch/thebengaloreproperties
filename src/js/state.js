@@ -3,23 +3,18 @@ import { api } from './api.js';
 
 class AppState {
   constructor() {
-    // Purge old cached hardcoded reference data from localStorage
+    // Force purge old cached mock properties from localStorage across all devices
     try {
-      const existingProps = localStorage.getItem('tbp_properties');
-      if (existingProps && existingProps.includes('prop-101')) {
+      const CACHE_VERSION = 'v4_neon_live';
+      if (localStorage.getItem('tbp_sync_ver') !== CACHE_VERSION) {
         localStorage.removeItem('tbp_properties');
-      }
-      const existingLeads = localStorage.getItem('tbp_leads');
-      if (existingLeads && existingLeads.includes('lead-101')) {
         localStorage.removeItem('tbp_leads');
-      }
-      const existingFavs = localStorage.getItem('tbp_favorites');
-      if (existingFavs && existingFavs.includes('prop-101')) {
         localStorage.removeItem('tbp_favorites');
+        localStorage.setItem('tbp_sync_ver', CACHE_VERSION);
       }
     } catch (e) {}
 
-    // Local Storage Properties fallback
+    // Local Storage Properties fallback (only cached if synced from Neon DB)
     const savedProps = localStorage.getItem('tbp_properties');
     this.allProperties = savedProps ? JSON.parse(savedProps) : [];
     this.filteredProperties = [...this.allProperties];
