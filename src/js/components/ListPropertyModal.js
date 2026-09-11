@@ -45,9 +45,9 @@ export function renderListPropertyModal() {
               <div class="input-field-group">
                 <label>BHK Type</label>
                 <select id="lp-bhk" class="search-select" style="padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input);">
-                  <option value="1bhk">1 BHK / Studio</option>
+                  <option value="1bhk">1 BHK</option>
                   <option value="2bhk" selected>2 BHK Apartment</option>
-                  <option value="3bhk">3 BHK Luxury</option>
+                  <option value="3bhk">3 BHK</option>
                   <option value="4bhk">4+ BHK / Villa</option>
                 </select>
               </div>
