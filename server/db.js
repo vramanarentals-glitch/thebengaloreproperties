@@ -5,7 +5,7 @@ dotenv.config();
 
 const { Pool } = pg;
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_0VJE3MorsDBh@ep-wild-water-aw6117t6-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+const connectionString = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_x2EBuTd0tjhS@ep-floral-scene-avevp6xe-pooler.c-11.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
 
 export const pool = new Pool({
   connectionString,
