@@ -1840,10 +1840,10 @@ footer {
   text-decoration: underline;
 }
 
-/* Floating Quick Call Booking Button (Positioned higher up above Netlify toolbar) */
+/* Floating Quick Call Booking Button */
 .floating-call-btn {
   position: fixed;
-  bottom: 180px;
+  bottom: 24px;
   right: 24px;
   z-index: 9999;
   background: linear-gradient(135deg, #10b981, #059669);
@@ -1864,7 +1864,7 @@ footer {
 
 @media (max-width: 768px) {
   .floating-call-btn {
-    bottom: 150px;
+    bottom: 20px;
     right: 16px;
     padding: 0.8rem 1.25rem;
     font-size: 0.9rem;
