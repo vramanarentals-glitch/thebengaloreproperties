@@ -237,10 +237,26 @@ function renderAdminDashboard(root) {
     </div>
   `;
 
+  // Ensure viewport scroll is reset to top so fixed overlay never gets displaced
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+
+  // Lock outer fullscreen shell from scrolling (only admin-body-container scrolls)
+  const shell = root.querySelector('#admin-portal-shell');
+  if (shell) {
+    shell.addEventListener('scroll', () => {
+      if (shell.scrollTop !== 0) shell.scrollTop = 0;
+      if (shell.scrollLeft !== 0) shell.scrollLeft = 0;
+    });
+  }
+
   // Attach Tab Handlers
   root.querySelectorAll('[data-admin-tab]').forEach(btn => {
     btn.addEventListener('click', () => {
       state.setAdminTab(btn.dataset.adminTab);
+      const bodyEl = root.querySelector('.admin-body-container');
+      if (bodyEl) bodyEl.scrollTop = 0;
     });
   });
 
@@ -840,6 +856,8 @@ function attachAdminTabEvents(tab, root) {
   root.querySelectorAll('[data-admin-tab-goto]').forEach(btn => {
     btn.addEventListener('click', () => {
       state.setAdminTab(btn.dataset.adminTabGoto);
+      const bodyEl = root.querySelector('.admin-body-container');
+      if (bodyEl) bodyEl.scrollTop = 0;
     });
   });
 

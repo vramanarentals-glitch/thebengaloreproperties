@@ -387,41 +387,45 @@ export function renderPropertyModal() {
 
     root.innerHTML = `
       <div class="modal-overlay" id="modal-backdrop">
-        <div class="modal-card" style="max-width: 620px; width: 92vw; max-height: 90vh; overflow-y: auto; background: #0f172a; border: 2px solid rgba(16, 185, 129, 0.5); box-shadow: 0 25px 60px rgba(0,0,0,0.85); border-radius: 20px;">
-          <button class="modal-close-btn" id="btn-close-modal" style="top: 15px; right: 15px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid rgba(255,255,255,0.2); z-index: 10;">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-
-          <div class="modal-body" style="padding: 1.75rem;">
-            <!-- Header -->
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">
-              <div style="width: 50px; height: 50px; border-radius: 14px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);">
+        <div class="modal-card modal-card-book-call" style="max-width: 580px; width: 94vw; max-height: 90vh; max-height: 90dvh; display: flex; flex-direction: column; overflow: hidden; background: #0f172a; border: 2px solid rgba(16, 185, 129, 0.5); box-shadow: 0 25px 60px rgba(0,0,0,0.85); border-radius: 20px; box-sizing: border-box;">
+          
+          <!-- Sticky Pinned Modal Header -->
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.15rem 1.35rem; border-bottom: 1px solid rgba(255,255,255,0.1); background: #0f172a; flex-shrink: 0; border-top-left-radius: 18px; border-top-right-radius: 18px;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; min-width: 0; flex: 1;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">
                 <i class="fa-solid fa-phone-volume"></i>
               </div>
-              <div>
-                <h3 class="font-heading" style="font-size: 1.4rem; color: #fff; line-height: 1.2;">Book a Call with Proprietor</h3>
-                <p style="font-size: 0.85rem; color: #10b981; font-weight: 700; margin-top: 2px;">
-                  Direct Callback from ${c.proprietor} (${c.phone})
+              <div style="min-width: 0; flex: 1;">
+                <h3 class="font-heading" style="font-size: 1.2rem; color: #fff; line-height: 1.2; margin: 0;">Book a Callback</h3>
+                <p style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin: 2px 0 0 0;">
+                  With Proprietor ${c.proprietor} (${c.phone})
                 </p>
               </div>
             </div>
 
-            <form id="form-book-call" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <button class="modal-close-btn" id="btn-close-modal" style="position: static !important; width: 34px; height: 34px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; margin-left: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;" title="Close Modal">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Scrollable Body Container -->
+          <div class="modal-body" style="flex: 1 1 0%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding: 1.25rem 1.35rem 2rem 1.35rem; box-sizing: border-box;">
+            <form id="form-book-call" style="display: flex; flex-direction: column; gap: 1rem;">
               <div class="modal-grid-2col">
                 <div class="input-field-group">
-                  <label style="font-weight: 700; color: #e2e8f0;">Your Full Name *</label>
-                  <input type="text" id="book-call-name" placeholder="e.g. Anand Sharma" required style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px;" />
+                  <label style="font-weight: 700; color: #e2e8f0; font-size: 0.85rem; margin-bottom: 0.35rem;">Your Full Name *</label>
+                  <input type="text" id="book-call-name" placeholder="e.g. Anand Sharma" required style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px; font-size: 0.92rem; width: 100%; box-sizing: border-box;" />
                 </div>
                 <div class="input-field-group">
-                  <label style="font-weight: 700; color: #e2e8f0;">Mobile Number *</label>
-                  <input type="tel" id="book-call-phone" placeholder="+91 98765 43210" required style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px;" />
+                  <label style="font-weight: 700; color: #e2e8f0; font-size: 0.85rem; margin-bottom: 0.35rem;">Mobile Number *</label>
+                  <input type="tel" id="book-call-phone" placeholder="+91 98765 43210" required style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px; font-size: 0.92rem; width: 100%; box-sizing: border-box;" />
                 </div>
               </div>
 
               <div class="modal-grid-2col">
                 <div class="input-field-group">
-                  <label style="font-weight: 700; color: #e2e8f0;">Preferred Service</label>
-                  <select id="book-call-service" style="background: rgba(15,23,42,0.9); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px;">
+                  <label style="font-weight: 700; color: #e2e8f0; font-size: 0.85rem; margin-bottom: 0.35rem;">Preferred Service</label>
+                  <select id="book-call-service" style="background: rgba(15,23,42,0.95); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px; font-size: 0.92rem; width: 100%; box-sizing: border-box;">
                     <option value="Residential Rental">Residential Rental (Flat/House)</option>
                     <option value="Commercial Office Space">Commercial Office Space</option>
                     <option value="Godown / Warehouse">Godown / Warehouse Space</option>
@@ -430,19 +434,19 @@ export function renderPropertyModal() {
                   </select>
                 </div>
                 <div class="input-field-group">
-                  <label style="font-weight: 700; color: #e2e8f0;">Preferred Locality</label>
-                  <input type="text" id="book-call-locality" placeholder="e.g. Murugeshpalaya, Indiranagar" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px;" />
+                  <label style="font-weight: 700; color: #e2e8f0; font-size: 0.85rem; margin-bottom: 0.35rem;">Preferred Locality</label>
+                  <input type="text" id="book-call-locality" placeholder="e.g. Murugeshpalaya, Indiranagar" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px; font-size: 0.92rem; width: 100%; box-sizing: border-box;" />
                 </div>
               </div>
 
               <div class="modal-grid-2col">
                 <div class="input-field-group">
-                  <label style="font-weight: 700; color: #e2e8f0;">Preferred Call Date *</label>
-                  <input type="date" id="book-call-date" min="${today}" value="${today}" required style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px;" />
+                  <label style="font-weight: 700; color: #e2e8f0; font-size: 0.85rem; margin-bottom: 0.35rem;">Preferred Call Date *</label>
+                  <input type="date" id="book-call-date" min="${today}" value="${today}" required style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px; font-size: 0.92rem; width: 100%; box-sizing: border-box;" />
                 </div>
                 <div class="input-field-group">
-                  <label style="font-weight: 700; color: #e2e8f0;">Preferred Time Slot</label>
-                  <select id="book-call-slot" style="background: rgba(15,23,42,0.9); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px;">
+                  <label style="font-weight: 700; color: #e2e8f0; font-size: 0.85rem; margin-bottom: 0.35rem;">Preferred Time Slot</label>
+                  <select id="book-call-slot" style="background: rgba(15,23,42,0.95); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px; font-size: 0.92rem; width: 100%; box-sizing: border-box;">
                     <option value="Morning (09:00 AM - 12:00 PM)">Morning (09:00 AM - 12:00 PM)</option>
                     <option value="Afternoon (12:00 PM - 04:00 PM)">Afternoon (12:00 PM - 04:00 PM)</option>
                     <option value="Evening (04:00 PM - 08:00 PM)">Evening (04:00 PM - 08:00 PM)</option>
@@ -451,16 +455,17 @@ export function renderPropertyModal() {
               </div>
 
               <div class="input-field-group">
-                <label style="font-weight: 700; color: #e2e8f0;">Notes / Requirements (Optional)</label>
-                <textarea id="book-call-notes" rows="2" placeholder="e.g. Budget ₹30k - ₹40k, 2BHK furnished near Tech Park..." style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px; resize: vertical;"></textarea>
+                <label style="font-weight: 700; color: #e2e8f0; font-size: 0.85rem; margin-bottom: 0.35rem;">Notes / Requirements (Optional)</label>
+                <textarea id="book-call-notes" rows="2" placeholder="e.g. Budget ₹30k - ₹40k, 2BHK furnished near Tech Park..." style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem; border-radius: 10px; resize: vertical; font-size: 0.92rem; width: 100%; box-sizing: border-box;"></textarea>
               </div>
 
-              <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                <button type="submit" class="nav-btn nav-btn-primary" style="flex: 1; min-width: 140px; justify-content: center; padding: 0.85rem; font-size: 0.95rem; font-weight: 800;">
+              <!-- Full-Width Responsive Action Buttons (Never Cut Off) -->
+              <div class="book-call-action-btns" style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.75rem; padding-bottom: 0.5rem;">
+                <button type="submit" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem 1rem; font-size: 0.98rem; font-weight: 800; border-radius: 12px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); display: flex; align-items: center; gap: 0.5rem; text-align: center;">
                   <i class="fa-solid fa-phone-volume"></i> Confirm & Book Callback
                 </button>
-                <a href="https://wa.me/${c.whatsapp.replace('+', '')}?text=Hello%20V.%20Ramana,%20I%20would%20like%20to%20book%20a%20call%20regarding%20properties." target="_blank" class="nav-btn" style="flex: 1; min-width: 140px; justify-content: center; background: #25D366; color: #fff; font-weight: 800; padding: 0.85rem; border-radius: 10px; border: none; text-decoration: none;">
-                  <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
+                <a href="https://wa.me/${c.whatsapp.replace('+', '')}?text=Hello%20V.%20Ramana,%20I%20would%20like%20to%20book%20a%20call%20regarding%20properties." target="_blank" class="nav-btn" style="width: 100%; justify-content: center; background: #25D366; color: #fff; font-weight: 800; padding: 0.85rem 1rem; font-size: 0.95rem; border-radius: 12px; border: none; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3); text-align: center;">
+                  <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i> Chat on WhatsApp
                 </a>
               </div>
             </form>
