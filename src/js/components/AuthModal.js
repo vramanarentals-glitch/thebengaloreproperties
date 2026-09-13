@@ -70,7 +70,7 @@ export function renderAuthModal() {
                   id="user-login-pass" 
                   placeholder="••••••••" 
                   required 
-                  autocomplete="current-password"
+                  autocomplete="new-password"
                   style="width: 100%; padding: 0.85rem 3.2rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500; box-sizing: border-box;"
                 />
                 <button 

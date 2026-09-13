@@ -64,7 +64,8 @@ function requireAdmin(req, res, next) {
 // Rate limiter for authentication endpoints
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 1000,
+  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1' || req.hostname === 'localhost',
   message: { success: false, message: 'Too many login/registration attempts. Please try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false

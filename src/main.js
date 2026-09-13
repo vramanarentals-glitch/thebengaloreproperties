@@ -51,9 +51,8 @@ function renderApp() {
 function checkAdminRoute() {
   const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
   const hash = window.location.hash.toLowerCase();
-  if (path === '/admin' || hash === '#admin') {
-    const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : state.isAdminLoggedIn;
-    if (isAdmin && state.activeModal !== 'admin-portal') {
+  if (path === '/admin' || hash === '#admin' || hash === '#/admin') {
+    if (state.activeModal !== 'admin-portal') {
       state.openModal('admin-portal');
     }
   }
