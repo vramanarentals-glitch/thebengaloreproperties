@@ -133,7 +133,7 @@ export async function initializeDatabase() {
 
   // Create / sync default admin user from .env credentials
   const adminEmail = (process.env.ADMIN_EMAIL || 'vramanarentals@gmail.com').trim().toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD || 'ramana rentals';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'ramana@123';
   const hashedAdminPassword = await bcrypt.hash(adminPassword, 10);
 
   const adminRes = await pool.query("SELECT * FROM users WHERE email = $1", [adminEmail]);
