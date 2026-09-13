@@ -5,7 +5,7 @@ async function testEndpoint() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: 'vramanarentals@gmail.com',
-        password: 'ramana rentals'
+        password: 'ramana@123'
       })
     });
 
