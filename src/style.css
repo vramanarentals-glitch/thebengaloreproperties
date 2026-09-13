@@ -2860,37 +2860,7 @@ footer {
   margin: 0;
 }
 
-.details-proximity-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
 
-.proximity-item-card {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: var(--bg-glass);
-  border: 1px solid var(--border-color);
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
-}
-
-.prox-icon {
-  font-size: 1.5rem;
-}
-
-.prox-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 700;
-}
-
-.prox-val {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
 
 .details-side-col {
   position: sticky;
@@ -2952,8 +2922,5 @@ footer {
     height: 380px;
     max-height: 55vh;
     min-height: 280px;
-  }
-  .details-proximity-grid {
-    grid-template-columns: 1fr;
   }
 }

@@ -200,44 +200,6 @@ export function renderPropertyModal() {
                     </div>
                   </div>
 
-                  <!-- Neighborhood Proximity Matrix Card -->
-                  ${p.proximity ? `
-                    <div class="details-section-card">
-                      <h3 class="details-section-heading">
-                        <i class="fa-solid fa-map-location-dot" style="color: var(--accent-emerald);"></i> Neighborhood & Proximity Markers
-                      </h3>
-                      <div class="details-proximity-grid">
-                        <div class="proximity-item-card">
-                          <div class="prox-icon">🚇</div>
-                          <div>
-                            <div class="prox-label">Metro Station</div>
-                            <div class="prox-val">${p.proximity.metro}</div>
-                          </div>
-                        </div>
-                        <div class="proximity-item-card">
-                          <div class="prox-icon">🏢</div>
-                          <div>
-                            <div class="prox-label">IT / Tech Park</div>
-                            <div class="prox-val">${p.proximity.techPark}</div>
-                          </div>
-                        </div>
-                        <div class="proximity-item-card">
-                          <div class="prox-icon">🏥</div>
-                          <div>
-                            <div class="prox-label">Multi-Specialty Hospital</div>
-                            <div class="prox-val">${p.proximity.hospital}</div>
-                          </div>
-                        </div>
-                        <div class="proximity-item-card">
-                          <div class="prox-icon">🛍️</div>
-                          <div>
-                            <div class="prox-label">Shopping Mall / Market</div>
-                            <div class="prox-val">${p.proximity.shopping}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ` : ''}
 
                 </div>
 
