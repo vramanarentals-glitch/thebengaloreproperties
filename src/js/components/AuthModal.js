@@ -64,15 +64,23 @@ export function renderAuthModal() {
                 Password
               </label>
               <div style="position: relative;">
-                <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 1;"></i>
                 <input 
                   type="password" 
                   id="user-login-pass" 
                   placeholder="••••••••" 
                   required 
                   autocomplete="current-password"
-                  style="width: 100%; padding: 0.85rem 0.85rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
+                  style="width: 100%; padding: 0.85rem 3.2rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500; box-sizing: border-box;"
                 />
+                <button 
+                  type="button" 
+                  id="btn-toggle-login-pass" 
+                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.15rem; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.2s ease;" 
+                  title="Click to show or hide password"
+                >
+                  <i class="fa-solid fa-eye" id="icon-login-pass-eye"></i>
+                </button>
               </div>
             </div>
 
@@ -121,7 +129,7 @@ export function renderAuthModal() {
                 Create Password
               </label>
               <div style="position: relative;">
-                <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 1;"></i>
                 <input 
                   type="password" 
                   id="user-reg-pass" 
@@ -129,8 +137,16 @@ export function renderAuthModal() {
                   required 
                   minlength="6"
                   autocomplete="new-password"
-                  style="width: 100%; padding: 0.85rem 0.85rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
+                  style="width: 100%; padding: 0.85rem 3.2rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500; box-sizing: border-box;"
                 />
+                <button 
+                  type="button" 
+                  id="btn-toggle-reg-pass" 
+                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.15rem; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.2s ease;" 
+                  title="Click to show or hide password"
+                >
+                  <i class="fa-solid fa-eye" id="icon-reg-pass-eye"></i>
+                </button>
               </div>
             </div>
 
@@ -139,7 +155,7 @@ export function renderAuthModal() {
                 Confirm Password
               </label>
               <div style="position: relative;">
-                <i class="fa-solid fa-lock-keyhole" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                <i class="fa-solid fa-lock-keyhole" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 1;"></i>
                 <input 
                   type="password" 
                   id="user-reg-confirm" 
@@ -147,8 +163,16 @@ export function renderAuthModal() {
                   required 
                   minlength="6"
                   autocomplete="new-password"
-                  style="width: 100%; padding: 0.85rem 0.85rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
+                  style="width: 100%; padding: 0.85rem 3.2rem 0.85rem 2.6rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500; box-sizing: border-box;"
                 />
+                <button 
+                  type="button" 
+                  id="btn-toggle-confirm-pass" 
+                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.15rem; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.2s ease;" 
+                  title="Click to show or hide password"
+                >
+                  <i class="fa-solid fa-eye" id="icon-confirm-pass-eye"></i>
+                </button>
               </div>
             </div>
 
@@ -243,6 +267,38 @@ export function renderAuthModal() {
       showToast(`❌ ${res.message}`);
     }
   });
+
+  // Password Visibility Toggles
+  const bindPasswordToggle = (btnId, inputId, iconId) => {
+    const btn = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!btn || !input) return;
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isPass = input.type === 'password';
+      input.type = isPass ? 'text' : 'password';
+
+      if (icon) {
+        if (isPass) {
+          icon.className = 'fa-solid fa-eye-slash';
+          btn.style.color = 'var(--accent-emerald)';
+          btn.setAttribute('title', 'Hide password');
+        } else {
+          icon.className = 'fa-solid fa-eye';
+          btn.style.color = 'var(--text-muted)';
+          btn.setAttribute('title', 'Show password');
+        }
+      }
+      input.focus();
+    });
+  };
+
+  bindPasswordToggle('btn-toggle-login-pass', 'user-login-pass', 'icon-login-pass-eye');
+  bindPasswordToggle('btn-toggle-reg-pass', 'user-reg-pass', 'icon-reg-pass-eye');
+  bindPasswordToggle('btn-toggle-confirm-pass', 'user-reg-confirm', 'icon-confirm-pass-eye');
 
   // Modal Close Listeners
   document.getElementById('btn-close-modal')?.addEventListener('click', () => {
