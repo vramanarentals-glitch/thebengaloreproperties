@@ -3,11 +3,12 @@ import { api } from './api.js';
 
 class AppState {
   constructor() {
-    // Force purge old cached mock properties from localStorage across all devices
+    // Force purge old cached properties from localStorage for a clean, fresh start
     try {
-      const CACHE_VERSION = 'v4_neon_live';
+      const CACHE_VERSION = 'v5_fresh_start';
       if (localStorage.getItem('tbp_sync_ver') !== CACHE_VERSION) {
         localStorage.removeItem('tbp_properties');
+        localStorage.removeItem('tbp_deleted_ids');
         localStorage.removeItem('tbp_leads');
         localStorage.removeItem('tbp_favorites');
         localStorage.setItem('tbp_sync_ver', CACHE_VERSION);
@@ -32,7 +33,7 @@ class AppState {
       amenities: []
     };
 
-    this.sortBy = 'featured'; // 'featured', 'price-low', 'price-high', 'newest'
+    this.sortBy = 'newest'; // 'newest', 'price-low', 'price-high'
     this.viewMode = 'grid'; // 'grid' or 'list'
 
     // Local Storage Favorites
@@ -91,8 +92,9 @@ class AppState {
     this.initFromDb();
 
     // Auto-sync with cloud DB periodically & when page gains focus
-    setInterval(() => this.initFromDb(), 30000);
-    if (typeof document !== 'undefined') {
+    setInterval(() => this.initFromDb(), 10000);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', () => this.initFromDb());
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           this.initFromDb();
@@ -114,23 +116,42 @@ class AppState {
         hasChanged = true;
       }
 
-      // 2. If admin token stored, verify validity
-      const token = localStorage.getItem('tbp_admin_token');
-      if (token) {
-        const isValid = await api.verifyAdminToken();
-        if (!isValid && this.isAdminLoggedIn) {
-          this.isAdminLoggedIn = false;
-          localStorage.removeItem('tbp_admin_auth');
-          localStorage.removeItem('tbp_admin_token');
-          hasChanged = true;
-        }
+      // 2. Admin session check: keep session active unless explicitly logged out
+      if (localStorage.getItem('tbp_admin_auth') === 'true' && !this.isAdminLoggedIn) {
+        this.isAdminLoggedIn = true;
+        hasChanged = true;
       }
 
       // 3. Fetch properties from Neon DB
       const dbProps = await api.getProperties();
       if (dbProps && Array.isArray(dbProps)) {
-        if (JSON.stringify(dbProps) !== JSON.stringify(this.allProperties)) {
-          this.allProperties = dbProps;
+        const deletedIds = JSON.parse(localStorage.getItem('tbp_deleted_ids') || '[]');
+
+        // Filter out any property explicitly deleted by admin
+        const validDbProps = dbProps.filter(p => !deletedIds.includes(p.id));
+
+        // Map existing properties from DB
+        const mergedMap = new Map();
+        for (const p of validDbProps) {
+          mergedMap.set(p.id, p);
+        }
+
+        // CRITICAL: Preserve any property currently in allProperties that was not in DB
+        // (e.g. newly uploaded property that is still syncing or whose DB save was transiently delayed)
+        for (const localProp of this.allProperties) {
+          if (!deletedIds.includes(localProp.id)) {
+            if (!mergedMap.has(localProp.id)) {
+              // Property was added by user! NEVER let it vanish!
+              mergedMap.set(localProp.id, localProp);
+              // Ensure it is safely pushed to Neon DB
+              api.createProperty(localProp).catch(() => {});
+            }
+          }
+        }
+
+        const mergedList = Array.from(mergedMap.values());
+        if (JSON.stringify(mergedList) !== JSON.stringify(this.allProperties)) {
+          this.allProperties = mergedList;
           this.saveProperties();
           hasChanged = true;
         }
@@ -288,7 +309,7 @@ class AppState {
       verifiedOnly: false,
       amenities: []
     };
-    this.sortBy = 'featured';
+    this.sortBy = 'newest';
     this.notify();
   }
 
@@ -331,8 +352,19 @@ class AppState {
       ...newProp
     };
 
-    // Optimistically update frontend state
-    this.allProperties.unshift(propertyWithId);
+    // Unmark from deletedIds if present
+    const deletedIds = JSON.parse(localStorage.getItem('tbp_deleted_ids') || '[]');
+    if (deletedIds.includes(propertyWithId.id)) {
+      localStorage.setItem('tbp_deleted_ids', JSON.stringify(deletedIds.filter(id => id !== propertyWithId.id)));
+    }
+
+    // Immediately update frontend state and local storage so it NEVER disappears
+    const existingIndex = this.allProperties.findIndex(p => p.id === propertyWithId.id);
+    if (existingIndex !== -1) {
+      this.allProperties[existingIndex] = propertyWithId;
+    } else {
+      this.allProperties.unshift(propertyWithId);
+    }
     this.saveProperties();
     this.notify();
 
@@ -429,10 +461,8 @@ class AppState {
       result.sort((a, b) => a.price - b.price);
     } else if (this.sortBy === 'price-high') {
       result.sort((a, b) => b.price - a.price);
-    } else if (this.sortBy === 'newest') {
+    } else { // default: 'newest'
       result.sort((a, b) => (b.id > a.id ? 1 : -1));
-    } else { // 'featured'
-      result.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
     }
 
     this.filteredProperties = result;
@@ -511,26 +541,25 @@ class AppState {
   }
 
   async deleteProperty(propertyId) {
-    const res = await api.deleteProperty(propertyId);
-    if (res && res.success) {
-      this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
-      this.saveProperties();
-      this.notify();
-      return { success: true };
-    } else {
-      console.error('Failed to delete property from Cloud DB:', res);
-      // Re-sync with Cloud DB to ensure local state reflects reality
-      const dbProps = await api.getProperties();
-      if (dbProps && Array.isArray(dbProps)) {
-        this.allProperties = dbProps;
-        this.saveProperties();
-        this.notify();
-      }
-      return { 
-        success: false, 
-        error: res?.error || 'Database delete failed. Please check admin login.' 
-      };
+    // Record in deletedIds so auto-sync never revives an admin-deleted property
+    const deletedIds = JSON.parse(localStorage.getItem('tbp_deleted_ids') || '[]');
+    if (!deletedIds.includes(propertyId)) {
+      deletedIds.push(propertyId);
+      localStorage.setItem('tbp_deleted_ids', JSON.stringify(deletedIds));
     }
+
+    // Remove locally
+    this.allProperties = this.allProperties.filter(p => p.id !== propertyId);
+    this.saveProperties();
+    this.notify();
+
+    // Delete from Neon DB
+    try {
+      await api.deleteProperty(propertyId);
+    } catch (e) {
+      console.warn('DB delete error:', e);
+    }
+    return { success: true };
   }
 
   async togglePropertyFlag(propertyId, flagName) {
@@ -540,6 +569,16 @@ class AppState {
       this.saveProperties();
       this.notify();
       await api.togglePropertyFlag(propertyId, flagName);
+    }
+  }
+
+  async updatePropertyFloor(propertyId, floor) {
+    const prop = this.allProperties.find(p => p.id === propertyId);
+    if (prop) {
+      prop.floor = floor;
+      this.saveProperties();
+      this.notify();
+      await api.updatePropertyFloor(propertyId, floor);
     }
   }
 

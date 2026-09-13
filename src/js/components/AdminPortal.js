@@ -175,7 +175,6 @@ function renderAdminDashboard(root) {
   const c = state.contactInfo;
 
   const totalRent = props.reduce((acc, p) => acc + (p.price || 0), 0);
-  const zeroBrokerageCount = props.filter(p => p.zeroBrokerage).length;
   const verifiedCount = props.filter(p => p.isVerified).length;
 
   const activeTab = state.adminTab || 'dashboard';
@@ -231,7 +230,7 @@ function renderAdminDashboard(root) {
 
       <!-- Admin Portal Body View -->
       <div class="admin-body-container">
-        ${renderAdminTabContent(activeTab, props, leads, c, totalRent, zeroBrokerageCount, verifiedCount)}
+        ${renderAdminTabContent(activeTab, props, leads, c, totalRent, verifiedCount)}
       </div>
 
     </div>
@@ -279,7 +278,7 @@ function renderAdminDashboard(root) {
   attachAdminTabEvents(activeTab, root);
 }
 
-function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCount, verifiedCount) {
+function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
   if (tab === 'dashboard') {
     return `
       <!-- KPI Stats Grid -->
@@ -291,15 +290,6 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
           </div>
           <div class="kpi-value">${props.length}</div>
           <div class="kpi-sub">Verified Bengaluru Properties</div>
-        </div>
-
-        <div class="kpi-card kpi-amber">
-          <div class="kpi-header-row">
-            <span class="kpi-title">0% Brokerage</span>
-            <i class="fa-solid fa-bolt kpi-icon"></i>
-          </div>
-          <div class="kpi-value">${zeroBrokerageCount}</div>
-          <div class="kpi-sub">Direct Proprietor Managed</div>
         </div>
 
         <div class="kpi-card kpi-blue">
@@ -369,7 +359,6 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
                     <td><span style="font-size: 0.8rem; font-weight: 600;">${p.type}</span></td>
                     <td>
                       <div style="display: flex; gap: 0.25rem;">
-                        ${p.zeroBrokerage ? '<span class="mini-flag mini-flag-amber">0%</span>' : ''}
                         ${p.isVerified ? '<span class="mini-flag mini-flag-emerald">🛡️</span>' : ''}
                       </div>
                     </td>
@@ -442,9 +431,20 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
             <input 
               type="text" 
               id="admin-prop-search" 
-              placeholder="Search property title, locality..." 
+              placeholder="Search property title, locality, floor..." 
               class="admin-search-input"
             />
+            <select id="admin-prop-floor-filter" class="search-select" style="padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.85rem; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);">
+              <option value="All">All Floors</option>
+              <option value="Ground Floor">Ground Floor</option>
+              <option value="1st Floor">1st Floor</option>
+              <option value="2nd Floor">2nd Floor</option>
+              <option value="3rd Floor">3rd Floor</option>
+              <option value="3rd of 8">3rd of 8</option>
+              <option value="4th Floor">4th Floor</option>
+              <option value="5th Floor">5th Floor</option>
+              <option value="Top Floor / Penthouse">Top Floor / Penthouse</option>
+            </select>
             <button class="nav-btn nav-btn-primary" data-admin-tab-goto="add-property" style="font-size: 0.85rem; white-space: nowrap;">
               <i class="fa-solid fa-plus"></i> Add Property
             </button>
@@ -458,11 +458,10 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
               <tr>
                 <th>Property</th>
                 <th>Locality</th>
+                <th>Floor</th>
                 <th>Rent / Deposit</th>
                 <th>Furnishing</th>
-                <th>0% Brokerage</th>
                 <th>Verified</th>
-                <th>Featured</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -474,29 +473,32 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
                       <img src="${p.images[0]}" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover;" />
                       <div>
                         <div style="font-weight: 700; font-size: 0.9rem;">${p.title}</div>
-                        <div style="font-size: 0.78rem; color: var(--text-secondary);">${p.bhk} | ${p.sqft} sqft | Owner: ${p.ownerName}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-secondary);">${p.bhk} | Floor: <strong style="color: var(--text-primary);">${p.floor || 'Ground Floor'}</strong> | ${p.sqft} sqft | Owner: ${p.ownerName}</div>
                       </div>
                     </div>
                   </td>
                   <td><span class="badge-locality">${p.locality}</span></td>
+                  <td>
+                    <select class="admin-floor-select" data-prop-id="${p.id}" style="padding: 0.35rem 0.6rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); cursor: pointer;" title="Change Floor Option">
+                      ${!['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', '3rd of 8', '4th Floor', '5th Floor', 'Top Floor / Penthouse'].includes(p.floor) && p.floor ? `<option value="${p.floor}" selected>${p.floor}</option>` : ''}
+                      <option value="Ground Floor" ${p.floor === 'Ground Floor' ? 'selected' : ''}>Ground Floor</option>
+                      <option value="1st Floor" ${p.floor === '1st Floor' ? 'selected' : ''}>1st Floor</option>
+                      <option value="2nd Floor" ${p.floor === '2nd Floor' ? 'selected' : ''}>2nd Floor</option>
+                      <option value="3rd Floor" ${p.floor === '3rd Floor' ? 'selected' : ''}>3rd Floor</option>
+                      <option value="3rd of 8" ${p.floor === '3rd of 8' ? 'selected' : ''}>3rd of 8</option>
+                      <option value="4th Floor" ${p.floor === '4th Floor' ? 'selected' : ''}>4th Floor</option>
+                      <option value="5th Floor" ${p.floor === '5th Floor' ? 'selected' : ''}>5th Floor</option>
+                      <option value="Top Floor / Penthouse" ${p.floor === 'Top Floor / Penthouse' ? 'selected' : ''}>Top Floor / Penthouse</option>
+                    </select>
+                  </td>
                   <td>
                     <div style="font-weight: 800; color: var(--accent-emerald);">₹${p.price.toLocaleString('en-IN')}/mo</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted);">Dep: ₹${p.deposit.toLocaleString('en-IN')}</div>
                   </td>
                   <td><span style="font-size: 0.82rem;">${p.furnishing}</span></td>
                   <td>
-                    <button class="flag-toggle-btn ${p.zeroBrokerage ? 'active' : ''}" data-flag-prop="${p.id}" data-flag-name="zeroBrokerage">
-                      ${p.zeroBrokerage ? '⚡ Yes (0%)' : 'No'}
-                    </button>
-                  </td>
-                  <td>
                     <button class="flag-toggle-btn ${p.isVerified ? 'active' : ''}" data-flag-prop="${p.id}" data-flag-name="isVerified">
                       ${p.isVerified ? '🛡️ Verified' : 'Unverified'}
-                    </button>
-                  </td>
-                  <td>
-                    <button class="flag-toggle-btn ${p.isFeatured ? 'active' : ''}" data-flag-prop="${p.id}" data-flag-name="isFeatured">
-                      ${p.isFeatured ? '⭐ Featured' : 'Normal'}
                     </button>
                   </td>
                   <td>
@@ -521,6 +523,20 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
                 <div style="flex: 1; min-width: 0;">
                   <div style="font-weight: 800; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.title}</div>
                   <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.locality} • ${p.bhk} • ${p.sqft} sqft</div>
+                  <div style="display: flex; align-items: center; gap: 0.35rem; margin-top: 4px;">
+                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">FLOOR:</span>
+                    <select class="admin-floor-select" data-prop-id="${p.id}" style="padding: 0.2rem 0.45rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);">
+                      ${!['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', '3rd of 8', '4th Floor', '5th Floor', 'Top Floor / Penthouse'].includes(p.floor) && p.floor ? `<option value="${p.floor}" selected>${p.floor}</option>` : ''}
+                      <option value="Ground Floor" ${p.floor === 'Ground Floor' ? 'selected' : ''}>Ground Floor</option>
+                      <option value="1st Floor" ${p.floor === '1st Floor' ? 'selected' : ''}>1st Floor</option>
+                      <option value="2nd Floor" ${p.floor === '2nd Floor' ? 'selected' : ''}>2nd Floor</option>
+                      <option value="3rd Floor" ${p.floor === '3rd Floor' ? 'selected' : ''}>3rd Floor</option>
+                      <option value="3rd of 8" ${p.floor === '3rd of 8' ? 'selected' : ''}>3rd of 8</option>
+                      <option value="4th Floor" ${p.floor === '4th Floor' ? 'selected' : ''}>4th Floor</option>
+                      <option value="5th Floor" ${p.floor === '5th Floor' ? 'selected' : ''}>5th Floor</option>
+                      <option value="Top Floor / Penthouse" ${p.floor === 'Top Floor / Penthouse' ? 'selected' : ''}>Top Floor / Penthouse</option>
+                    </select>
+                  </div>
                   <div style="font-weight: 800; color: var(--accent-emerald); margin-top: 2px; font-size: 0.88rem;">₹${p.price.toLocaleString('en-IN')}/mo</div>
                 </div>
                 <button class="btn-admin-del" data-del-prop="${p.id}" style="align-self: center; flex-shrink: 0;" title="Delete Property">
@@ -528,15 +544,9 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
                 </button>
               </div>
 
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px dashed var(--border-color);">
-                <button class="flag-toggle-btn ${p.zeroBrokerage ? 'active' : ''}" data-flag-prop="${p.id}" data-flag-name="zeroBrokerage" style="width: 100%; text-align: center; padding: 0.35rem 0.2rem; font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  ${p.zeroBrokerage ? '⚡ 0% Broker' : 'Brokerage'}
-                </button>
-                <button class="flag-toggle-btn ${p.isVerified ? 'active' : ''}" data-flag-prop="${p.id}" data-flag-name="isVerified" style="width: 100%; text-align: center; padding: 0.35rem 0.2rem; font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  ${p.isVerified ? '🛡️ Verified' : 'Unverified'}
-                </button>
-                <button class="flag-toggle-btn ${p.isFeatured ? 'active' : ''}" data-flag-prop="${p.id}" data-flag-name="isFeatured" style="width: 100%; text-align: center; padding: 0.35rem 0.2rem; font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  ${p.isFeatured ? '⭐ Featured' : 'Normal'}
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px dashed var(--border-color);">
+                <button class="flag-toggle-btn ${p.isVerified ? 'active' : ''}" data-flag-prop="${p.id}" data-flag-name="isVerified" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+                  ${p.isVerified ? '🛡️ Verified Listing' : 'Unverified Listing'}
                 </button>
               </div>
             </div>
@@ -624,6 +634,67 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
                 <option value="Semi-Furnished" selected>Semi-Furnished</option>
                 <option value="Unfurnished">Unfurnished</option>
               </select>
+            </div>
+          </div>
+
+          <div class="responsive-form-row">
+            <div class="input-field-group">
+              <label>Floor Level</label>
+              <input 
+                type="text" 
+                id="admin-p-floor" 
+                placeholder="e.g. 3rd of 8, Ground Floor, 2nd Floor" 
+                list="admin-floor-datalist" 
+                required 
+              />
+              <datalist id="admin-floor-datalist">
+                <option value="Ground Floor"></option>
+                <option value="1st Floor"></option>
+                <option value="2nd Floor"></option>
+                <option value="3rd of 8"></option>
+                <option value="3rd Floor"></option>
+                <option value="4th Floor"></option>
+                <option value="5th Floor"></option>
+                <option value="Top Floor / Penthouse"></option>
+              </datalist>
+            </div>
+
+            <div class="input-field-group">
+              <label>Facing (Direction)</label>
+              <select id="admin-p-facing" class="search-select">
+                <option value="East Facing" selected>East Facing</option>
+                <option value="North Facing">North Facing</option>
+                <option value="North-East Facing">North-East Facing</option>
+                <option value="West Facing">West Facing</option>
+                <option value="South Facing">South Facing</option>
+                <option value="South-East Facing">South-East Facing</option>
+                <option value="North-West Facing">North-West Facing</option>
+                <option value="South-West Facing">South-West Facing</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-field-group">
+            <label style="font-weight: 700; margin-bottom: 0.5rem; display: block;">
+              <i class="fa-solid fa-list-check" style="color: var(--accent-emerald);"></i> Society & Unit Amenities
+            </label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.65rem; background: var(--bg-input); padding: 0.85rem; border-radius: 12px; border: 1px solid var(--border-color);">
+              <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); user-select: none;">
+                <input type="checkbox" name="admin-amenity" value="Power Backup" checked style="width: 18px; height: 18px; accent-color: var(--accent-emerald); cursor: pointer;" />
+                <span><i class="fa-solid fa-bolt" style="color: #f59e0b; width: 16px;"></i> Power Backup</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); user-select: none;">
+                <input type="checkbox" name="admin-amenity" value="Lift" checked style="width: 18px; height: 18px; accent-color: var(--accent-emerald); cursor: pointer;" />
+                <span><i class="fa-solid fa-elevator" style="color: var(--accent-indigo); width: 16px;"></i> Lift</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); user-select: none;">
+                <input type="checkbox" name="admin-amenity" value="Car Parking" checked style="width: 18px; height: 18px; accent-color: var(--accent-emerald); cursor: pointer;" />
+                <span><i class="fa-solid fa-square-parking" style="color: #3b82f6; width: 16px;"></i> Car Parking</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); user-select: none;">
+                <input type="checkbox" name="admin-amenity" value="24/7 Security" checked style="width: 18px; height: 18px; accent-color: var(--accent-emerald); cursor: pointer;" />
+                <span><i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald); width: 16px;"></i> 24/7 Security</span>
+              </label>
             </div>
           </div>
 
@@ -833,17 +904,6 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, zeroBrokerageCou
           </button>
         </form>
 
-        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-          <h5 style="margin: 0 0 0.5rem 0; font-size: 1.05rem; font-weight: 700; color: #ef4444; display: flex; align-items: center; gap: 0.5rem;">
-            <i class="fa-solid fa-rotate-left"></i> Data Reset & Maintenance
-          </h5>
-          <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
-            Reset property listings back to the default sample dataset if you ever need to restore deleted test properties.
-          </p>
-          <button type="button" id="btn-reset-default-properties" class="nav-btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; font-size: 0.9rem;">
-            <i class="fa-solid fa-arrow-rotate-left"></i> Restore Default Sample Properties
-          </button>
-        </div>
       </div>
     `;
   }
@@ -863,15 +923,41 @@ function attachAdminTabEvents(tab, root) {
 
   if (tab === 'properties') {
     const searchInput = document.getElementById('admin-prop-search');
-    searchInput?.addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase();
+    const floorFilter = document.getElementById('admin-prop-floor-filter');
+
+    const applyPropFilters = () => {
+      const q = searchInput?.value.toLowerCase().trim() || '';
+      const selectedFloor = floorFilter?.value || 'All';
+
       // Filter desktop rows
       root.querySelectorAll('#admin-properties-table tbody tr').forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+        const text = row.innerText.toLowerCase();
+        const matchesQuery = !q || text.includes(q);
+        const rowFloor = row.querySelector('.admin-floor-select')?.value || '';
+        const matchesFloor = selectedFloor === 'All' || rowFloor.toLowerCase() === selectedFloor.toLowerCase();
+        row.style.display = (matchesQuery && matchesFloor) ? '' : 'none';
       });
+
       // Filter mobile cards
       root.querySelectorAll('[data-mobile-prop-card]').forEach(card => {
-        card.style.display = card.innerText.toLowerCase().includes(q) ? '' : 'none';
+        const text = card.innerText.toLowerCase();
+        const matchesQuery = !q || text.includes(q);
+        const cardFloor = card.querySelector('.admin-floor-select')?.value || '';
+        const matchesFloor = selectedFloor === 'All' || cardFloor.toLowerCase() === selectedFloor.toLowerCase();
+        card.style.display = (matchesQuery && matchesFloor) ? '' : 'none';
+      });
+    };
+
+    searchInput?.addEventListener('input', applyPropFilters);
+    floorFilter?.addEventListener('change', applyPropFilters);
+
+    // Floor select change listeners
+    root.querySelectorAll('.admin-floor-select').forEach(select => {
+      select.addEventListener('change', async () => {
+        const propId = select.dataset.propId;
+        const newFloor = select.value;
+        await state.updatePropertyFloor(propId, newFloor);
+        showToast(`🏢 Floor updated to "${newFloor}"!`);
       });
     });
 
@@ -1015,6 +1101,11 @@ function attachAdminTabEvents(tab, root) {
       const ownerName = document.getElementById('admin-p-owner-name').value;
       const ownerPhone = document.getElementById('admin-p-owner-phone').value;
       const description = document.getElementById('admin-p-desc').value;
+      const floor = document.getElementById('admin-p-floor')?.value.trim() || '3rd Floor';
+      const facing = document.getElementById('admin-p-facing')?.value || 'East Facing';
+      const selectedAmenities = Array.from(
+        document.querySelectorAll('input[name="admin-amenity"]:checked')
+      ).map(el => el.value);
 
       const propertyId = `prop-custom-${Date.now()}`;
       let finalImages = [];
@@ -1062,12 +1153,12 @@ function attachAdminTabEvents(tab, root) {
         furnishing,
         sqft,
         bathrooms: 2,
-        floor: '3rd of 8',
-        facing: 'East Facing',
+        floor,
+        facing,
         availableFrom: 'Immediate',
         preferredTenants: 'Any',
         images: finalImages,
-        amenities: ['Power Backup', 'Lift', 'Car Parking', '24/7 Security'],
+        amenities: selectedAmenities.length > 0 ? selectedAmenities : ['Power Backup', 'Lift', 'Car Parking', '24/7 Security'],
         description,
         ownerName,
         ownerPhone,
@@ -1127,11 +1218,5 @@ function attachAdminTabEvents(tab, root) {
       showToast('💾 Proprietor settings updated across the site!');
     });
 
-    document.getElementById('btn-reset-default-properties')?.addEventListener('click', () => {
-      if (confirm('Are you sure you want to reset all property listings to the original default dataset? Custom added or deleted properties will be reset.')) {
-        state.resetPropertiesToDefault();
-        showToast('🔄 Properties restored to default sample data.');
-      }
-    });
   }
 }

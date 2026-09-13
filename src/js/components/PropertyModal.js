@@ -14,136 +14,420 @@ export function renderPropertyModal() {
 
   if (state.activeModal === 'property-details' && p) {
     root.innerHTML = `
-      <div class="modal-overlay" id="modal-backdrop">
-        <div class="modal-card">
-          <button class="modal-close-btn" id="btn-close-modal">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-
-          <div class="modal-body">
-            <!-- Main Photo Gallery -->
-            <div class="gallery-main">
-              <img id="gallery-current-img" src="${p.images[0]}" alt="${p.title}" />
+      <div class="modal-overlay modal-overlay-details-fullscreen" id="modal-backdrop">
+        <div class="modal-card modal-card-details-fullscreen">
+          
+          <!-- Sticky Fullscreen Top Navigation Bar -->
+          <div class="details-fullscreen-topbar">
+            <div class="details-fullscreen-topbar-left">
+              <button type="button" class="details-back-btn" id="btn-back-details" title="Back to Properties">
+                <i class="fa-solid fa-arrow-left"></i> <span>Back to Properties</span>
+              </button>
+              <div class="details-breadcrumb hide-mobile">
+                <span>Bengaluru</span>
+                <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem; color: var(--text-muted);"></i>
+                <span>${p.locality}</span>
+                <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem; color: var(--text-muted);"></i>
+                <span style="font-weight: 700; color: var(--text-primary);">${p.title}</span>
+              </div>
             </div>
 
-            ${p.images.length > 1 ? `
-              <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem;">
-                ${p.images.map((img, idx) => `
-                  <img 
-                    src="${img}" 
-                    class="gallery-thumb" 
-                    data-img-src="${img}"
-                    style="width: 80px; height: 60px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 2px solid ${idx === 0 ? 'var(--accent-emerald)' : 'transparent'};" 
-                  />
-                `).join('')}
+            <div class="details-fullscreen-topbar-right">
+              <div class="hide-mobile" style="text-align: right; margin-right: 0.5rem;">
+                <div style="font-size: 1.25rem; font-weight: 800; color: var(--accent-emerald); line-height: 1;">
+                  ₹${p.price.toLocaleString('en-IN')}<span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">/mo</span>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Dep: ₹${p.deposit.toLocaleString('en-IN')}</div>
               </div>
-            ` : ''}
+              <a href="tel:${p.ownerPhone}" class="nav-btn nav-btn-primary hide-mobile" style="padding: 0.55rem 1rem; font-size: 0.85rem; border-radius: 10px; text-decoration: none;">
+                <i class="fa-solid fa-phone"></i> Call Direct
+              </a>
+              <a href="https://wa.me/918050407710?text=${encodeURIComponent(`Hello V. Ramana, I am inquiring about "${p.title}" in ${p.locality} listed for ₹${p.price.toLocaleString('en-IN')}/mo on The Bangalore Properties.`)}" target="_blank" class="nav-btn hide-mobile" style="background: #25D366; color: #fff; border: none; padding: 0.55rem 1rem; font-size: 0.85rem; border-radius: 10px; text-decoration: none;">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+              </a>
+              <button class="modal-close-btn" id="btn-close-modal" style="position: static !important; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;" title="Close Details">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-              <div>
-                <h2 class="modal-title font-heading">${p.title}</h2>
-                <div class="modal-address">
-                  <i class="fa-solid fa-location-dot" style="color: var(--accent-emerald);"></i> ${p.address}
+          <!-- Fullscreen Scrollable Content Body -->
+          <div class="details-fullscreen-body" id="details-scroll-container">
+            <div class="details-fullscreen-container">
+
+              <!-- Title & Price Header Banner -->
+              <div class="details-main-header-card">
+                <div style="flex: 1; min-width: 280px;">
+                  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; align-items: center;">
+                    <span class="badge" style="background: #10b981; color: #fff; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-key"></i> FOR RENT</span>
+                    ${p.isVerified ? `<span class="badge badge-verified">🛡️ Verified Property</span>` : ''}
+                  </div>
+                  <h1 class="details-page-title font-heading">${p.title}</h1>
+                  <div class="details-page-address">
+                    <i class="fa-solid fa-location-dot" style="color: var(--accent-emerald);"></i> ${p.address}
+                  </div>
+                </div>
+
+                <div class="details-header-price-card">
+                  <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-emerald); line-height: 1.1;">
+                    ₹${p.price.toLocaleString('en-IN')} <span style="font-size: 1.05rem; color: var(--text-secondary); font-weight: 500;">/month</span>
+                  </div>
+                  <div style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 4px;">
+                    Security Deposit: <strong style="color: var(--text-primary);">₹${p.deposit.toLocaleString('en-IN')}</strong>
+                  </div>
                 </div>
               </div>
-              
-              <div style="text-align: right;">
-                <div style="font-size: 2rem; font-weight: 800; color: var(--accent-emerald);">
-                  ₹${p.price.toLocaleString('en-IN')} <span style="font-size: 1rem; color: var(--text-secondary); font-weight: 500;">/month</span>
+
+              <!-- Main Photo Gallery Slider (Sideways Swipeable, No Arrows) -->
+              <div class="gallery-slider-wrapper details-fullscreen-gallery">
+                <div class="gallery-slider-track" id="property-gallery-slider">
+                  ${p.images.map((img, idx) => `
+                    <div class="gallery-slide-item" data-slide-index="${idx}">
+                      <img src="${img}" alt="${p.title} - Photo ${idx + 1}" loading="${idx === 0 ? 'eager' : 'lazy'}" />
+                    </div>
+                  `).join('')}
                 </div>
-                <div style="font-size: 0.9rem; color: var(--text-secondary);">
-                  Security Deposit: <strong>₹${p.deposit.toLocaleString('en-IN')}</strong>
+
+                ${p.images.length > 1 ? `
+                  <div class="gallery-counter-pill" id="gallery-counter-pill">
+                    <span id="gallery-active-index">1</span> / ${p.images.length}
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Horizontally Scrollable Thumbnails Strip -->
+              ${p.images.length > 1 ? `
+                <div class="gallery-thumbs-carousel" id="gallery-thumbs-carousel" style="margin-bottom: 2rem;">
+                  ${p.images.map((img, idx) => `
+                    <button 
+                      type="button" 
+                      class="gallery-thumb-btn ${idx === 0 ? 'active' : ''}" 
+                      data-thumb-index="${idx}"
+                      aria-label="View Photo ${idx + 1}"
+                    >
+                      <img src="${img}" alt="Thumbnail ${idx + 1}" loading="lazy" />
+                    </button>
+                  `).join('')}
                 </div>
-              </div>
-            </div>
+              ` : ''}
 
-            <!-- Key Specs Bar -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; background: var(--bg-glass); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 16px; margin: 1.5rem 0;">
-              <div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">BHK TYPE</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">${p.bhk}</div>
-              </div>
-              <div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">SUPER AREA</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">${p.sqft} sq ft</div>
-              </div>
-              <div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">FURNISHING</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">${p.furnishing}</div>
-              </div>
-              <div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">FLOOR</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">${p.floor}</div>
-              </div>
-              <div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">FACING</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">${p.facing}</div>
-              </div>
-            </div>
+              <!-- 2-Column Responsive Layout: Left Content (68%) & Right Sticky Contact Widget (32%) -->
+              <div class="details-2col-layout">
+                
+                <!-- Left Column: Specs, Description, Amenities, Proximity -->
+                <div class="details-main-col">
 
-            <!-- Description -->
-            <div style="margin-bottom: 1.5rem;">
-              <h4 class="font-heading" style="font-size: 1.1rem; margin-bottom: 0.5rem;">Property Description</h4>
-              <p style="color: var(--text-secondary); line-height: 1.6;">${p.description}</p>
-            </div>
+                  <!-- Key Specs Matrix Bar -->
+                  <div class="details-specs-grid">
+                    <div class="details-spec-box">
+                      <div class="details-spec-icon"><i class="fa-solid fa-bed"></i></div>
+                      <div>
+                        <div class="details-spec-label">BHK TYPE</div>
+                        <div class="details-spec-val">${p.bhk}</div>
+                      </div>
+                    </div>
+                    <div class="details-spec-box">
+                      <div class="details-spec-icon"><i class="fa-solid fa-ruler-combined"></i></div>
+                      <div>
+                        <div class="details-spec-label">SUPER AREA</div>
+                        <div class="details-spec-val">${p.sqft} sq ft</div>
+                      </div>
+                    </div>
+                    <div class="details-spec-box">
+                      <div class="details-spec-icon"><i class="fa-solid fa-couch"></i></div>
+                      <div>
+                        <div class="details-spec-label">FURNISHING</div>
+                        <div class="details-spec-val">${p.furnishing}</div>
+                      </div>
+                    </div>
+                    <div class="details-spec-box">
+                      <div class="details-spec-icon"><i class="fa-solid fa-stairs"></i></div>
+                      <div>
+                        <div class="details-spec-label">FLOOR LEVEL</div>
+                        <div class="details-spec-val">${p.floor}</div>
+                      </div>
+                    </div>
+                    <div class="details-spec-box">
+                      <div class="details-spec-icon"><i class="fa-solid fa-compass"></i></div>
+                      <div>
+                        <div class="details-spec-label">FACING</div>
+                        <div class="details-spec-val">${p.facing}</div>
+                      </div>
+                    </div>
+                    <div class="details-spec-box">
+                      <div class="details-spec-icon"><i class="fa-solid fa-bath"></i></div>
+                      <div>
+                        <div class="details-spec-label">BATHROOMS</div>
+                        <div class="details-spec-val">${p.bathrooms || 2} Bathrooms</div>
+                      </div>
+                    </div>
+                    <div class="details-spec-box">
+                      <div class="details-spec-icon"><i class="fa-solid fa-clock"></i></div>
+                      <div>
+                        <div class="details-spec-label">AVAILABLE FROM</div>
+                        <div class="details-spec-val">${p.availableFrom || 'Immediate'}</div>
+                      </div>
+                    </div>
+                    <div class="details-spec-box">
+                      <div class="details-spec-icon"><i class="fa-solid fa-users"></i></div>
+                      <div>
+                        <div class="details-spec-label">PREFERRED TENANTS</div>
+                        <div class="details-spec-val">${p.preferredTenants || 'Any'}</div>
+                      </div>
+                    </div>
+                  </div>
 
-            <!-- Amenities -->
-            <div style="margin-bottom: 1.5rem;">
-              <h4 class="font-heading" style="font-size: 1.1rem; margin-bottom: 0.5rem;">Society & Unit Amenities</h4>
-              <div class="amenities-tag-grid">
-                ${p.amenities.map(a => `
-                  <span class="amenity-chip">
-                    <i class="fa-solid fa-circle-check"></i> ${a}
-                  </span>
-                `).join('')}
-              </div>
-            </div>
+                  <!-- Property Description Card -->
+                  <div class="details-section-card">
+                    <h3 class="details-section-heading">
+                      <i class="fa-solid fa-circle-info" style="color: var(--accent-emerald);"></i> Property Overview & Description
+                    </h3>
+                    <p class="details-desc-text">${p.description}</p>
+                  </div>
 
-            <!-- Neighborhood Proximity Matrix -->
-            ${p.proximity ? `
-              <div style="background: var(--bg-surface); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 16px; margin-bottom: 1.5rem;">
-                <h4 class="font-heading" style="font-size: 1.1rem; margin-bottom: 0.75rem;">⚡ Proximity & Proximity Markers</h4>
-                <div class="modal-grid-2col" style="gap: 0.75rem; font-size: 0.9rem; color: var(--text-secondary);">
-                  <div>🚇 <strong>Metro:</strong> ${p.proximity.metro}</div>
-                  <div>🏢 <strong>Tech Hub:</strong> ${p.proximity.techPark}</div>
-                  <div>🏥 <strong>Hospital:</strong> ${p.proximity.hospital}</div>
-                  <div>🛍️ <strong>Shopping:</strong> ${p.proximity.shopping}</div>
+                  <!-- Society & Unit Amenities Card -->
+                  <div class="details-section-card">
+                    <h3 class="details-section-heading">
+                      <i class="fa-solid fa-list-check" style="color: var(--accent-emerald);"></i> Society & Unit Amenities
+                    </h3>
+                    <div class="amenities-tag-grid">
+                      ${p.amenities.map(a => `
+                        <span class="amenity-chip">
+                          <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> ${a}
+                        </span>
+                      `).join('')}
+                    </div>
+                  </div>
+
+                  <!-- Neighborhood Proximity Matrix Card -->
+                  ${p.proximity ? `
+                    <div class="details-section-card">
+                      <h3 class="details-section-heading">
+                        <i class="fa-solid fa-map-location-dot" style="color: var(--accent-emerald);"></i> Neighborhood & Proximity Markers
+                      </h3>
+                      <div class="details-proximity-grid">
+                        <div class="proximity-item-card">
+                          <div class="prox-icon">🚇</div>
+                          <div>
+                            <div class="prox-label">Metro Station</div>
+                            <div class="prox-val">${p.proximity.metro}</div>
+                          </div>
+                        </div>
+                        <div class="proximity-item-card">
+                          <div class="prox-icon">🏢</div>
+                          <div>
+                            <div class="prox-label">IT / Tech Park</div>
+                            <div class="prox-val">${p.proximity.techPark}</div>
+                          </div>
+                        </div>
+                        <div class="proximity-item-card">
+                          <div class="prox-icon">🏥</div>
+                          <div>
+                            <div class="prox-label">Multi-Specialty Hospital</div>
+                            <div class="prox-val">${p.proximity.hospital}</div>
+                          </div>
+                        </div>
+                        <div class="proximity-item-card">
+                          <div class="prox-icon">🛍️</div>
+                          <div>
+                            <div class="prox-label">Shopping Mall / Market</div>
+                            <div class="prox-val">${p.proximity.shopping}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ` : ''}
+
                 </div>
-              </div>
-            ` : ''}
 
-            <!-- Owner Contact Box -->
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(99, 102, 241, 0.1)); border: 1px solid var(--border-glow); padding: 1.25rem; border-radius: 16px;">
-              <div>
-                <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-emerald);">LISTED BY</div>
-                <div style="font-size: 1.2rem; font-weight: 800;">${p.ownerName} (${p.ownerType})</div>
-                <div style="font-size: 0.85rem; color: var(--text-secondary);">${p.ownerPhone}</div>
+                <!-- Right Column: Sticky Contact & Booking Widget -->
+                <div class="details-side-col">
+                  <div class="details-sticky-contact-card">
+                    <div class="details-contact-header">
+                      <div style="font-size: 0.72rem; font-weight: 800; color: var(--accent-emerald); text-transform: uppercase; letter-spacing: 0.8px;">VERIFIED PROPRIETOR LISTING</div>
+                      <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin-top: 2px;">
+                        V. RAMANA <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary);">(Proprietor)</span>
+                      </div>
+                      <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
+                        The Bangalore Properties
+                      </div>
+                    </div>
+
+                    <!-- Direct Actions Stack -->
+                    <div class="details-contact-actions">
+                      <a href="tel:${p.ownerPhone}" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem 1rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; gap: 0.5rem; text-decoration: none;">
+                        <i class="fa-solid fa-phone"></i> Call Directly (${p.ownerPhone})
+                      </a>
+
+                      <a href="https://wa.me/918050407710?text=${encodeURIComponent(`Hello V. Ramana, I am inquiring about "${p.title}" in ${p.locality} listed for ₹${p.price.toLocaleString('en-IN')}/mo on The Bangalore Properties.`)}" target="_blank" class="nav-btn" style="width: 100%; justify-content: center; background: #25D366; color: #fff; font-weight: 800; padding: 0.85rem 1rem; font-size: 0.95rem; border-radius: 12px; border: none; text-decoration: none; gap: 0.5rem;">
+                        <i class="fa-brands fa-whatsapp" style="font-size: 1.15rem;"></i> Chat on WhatsApp
+                      </a>
+
+                      <button type="button" id="btn-modal-book-call" class="nav-btn" style="width: 100%; justify-content: center; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; font-weight: 700; padding: 0.85rem 1rem; font-size: 0.92rem; border-radius: 12px;">
+                        <i class="fa-solid fa-phone-volume"></i> Request a Callback
+                      </button>
+
+                      <button type="button" id="btn-modal-schedule-tour" class="nav-btn" style="width: 100%; justify-content: center; background: var(--accent-indigo); color: #fff; border: none; font-weight: 700; padding: 0.85rem 1rem; font-size: 0.92rem; border-radius: 12px;">
+                        <i class="fa-solid fa-calendar-plus"></i> Schedule Property Visit
+                      </button>
+                    </div>
+
+                    <!-- Office Details Box -->
+                    <div class="details-office-info-box">
+                      <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">OFFICE LOCATION</div>
+                      <div style="font-size: 0.82rem; color: var(--text-primary); line-height: 1.45; margin-top: 4px;">
+                        Ground floor, Srinivas Residency, 2nd Main, KR Garden, Murugeshpalaya, Bangalore - 560017
+                      </div>
+                      <div style="margin-top: 8px; font-size: 0.78rem; color: var(--accent-emerald); font-weight: 700;">
+                        <i class="fa-solid fa-handshake"></i> YOUR PROPERTY, OUR PRIORITY.
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
               </div>
 
-              <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <button id="btn-modal-book-call" class="nav-btn" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; font-weight: 700;">
-                  <i class="fa-solid fa-phone-volume"></i> Book a Call
-                </button>
-                <a href="tel:${p.ownerPhone}" class="nav-btn nav-btn-primary">
-                  <i class="fa-solid fa-phone"></i> Call Now
-                </a>
-                <button id="btn-modal-schedule-tour" class="nav-btn" style="background: var(--accent-indigo); color: #fff; border: none;">
-                  <i class="fa-solid fa-calendar-plus"></i> Schedule Tour
-                </button>
-              </div>
             </div>
           </div>
         </div>
       </div>
     `;
 
-    // Attach Gallery Thumb clicks
-    root.querySelectorAll('.gallery-thumb').forEach(thumb => {
-      thumb.addEventListener('click', () => {
-        const mainImg = document.getElementById('gallery-current-img');
-        if (mainImg) mainImg.src = thumb.dataset.imgSrc;
-      });
+    document.getElementById('btn-back-details')?.addEventListener('click', () => {
+      state.closeModal();
     });
+
+    // Setup Sideways Swipe & Drag Gallery Slider (No arrows)
+    const slider = document.getElementById('property-gallery-slider');
+    const counterSpan = document.getElementById('gallery-active-index');
+    const thumbButtons = root.querySelectorAll('.gallery-thumb-btn');
+
+    if (slider) {
+      let isDown = false;
+      let startX = 0;
+      let scrollLeft = 0;
+      let isDragging = false;
+
+      // Mouse drag for desktop sideways sliding
+      slider.addEventListener('mousedown', (e) => {
+        isDown = true;
+        slider.classList.add('is-dragging');
+        startX = e.pageX - slider.offsetLeft;
+        scrollLeft = slider.scrollLeft;
+        isDragging = false;
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (!isDown) return;
+        isDown = false;
+        slider.classList.remove('is-dragging');
+        const slideWidth = slider.clientWidth;
+        if (slideWidth > 0) {
+          const targetIndex = Math.round(slider.scrollLeft / slideWidth);
+          slider.scrollTo({ left: targetIndex * slideWidth, behavior: 'smooth' });
+        }
+      });
+
+      slider.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - slider.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        slider.scrollLeft = scrollLeft - walk;
+        if (Math.abs(walk) > 5) isDragging = true;
+      });
+
+      // Touch swipe gestures specifically tuned for mobile phones (No arrows needed)
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchStartTime = 0;
+      let touchDeltaX = 0;
+      let isSwiping = false;
+
+      slider.addEventListener('touchstart', (e) => {
+        if (!e.touches || e.touches.length === 0) return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+        touchDeltaX = 0;
+        isSwiping = true;
+      }, { passive: true });
+
+      slider.addEventListener('touchmove', (e) => {
+        if (!isSwiping || !e.touches || e.touches.length === 0) return;
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        touchDeltaX = currentX - touchStartX;
+        const deltaY = currentY - touchStartY;
+
+        // If swiping horizontally, prevent vertical scroll interference
+        if (Math.abs(touchDeltaX) > Math.abs(deltaY) && Math.abs(touchDeltaX) > 10) {
+          if (e.cancelable) e.preventDefault();
+        }
+      }, { passive: false });
+
+      slider.addEventListener('touchend', () => {
+        if (!isSwiping) return;
+        isSwiping = false;
+        const slideWidth = slider.clientWidth;
+        const timeDiff = Date.now() - touchStartTime;
+        
+        // Threshold: 30px swipe or quick flick under 300ms
+        const isQuickFlick = timeDiff < 300 && Math.abs(touchDeltaX) > 20;
+        const isSufficientDrag = Math.abs(touchDeltaX) > 35;
+
+        if (slideWidth > 0 && (isQuickFlick || isSufficientDrag)) {
+          const currentIdx = Math.round(slider.scrollLeft / slideWidth);
+          if (touchDeltaX < 0 && currentIdx < p.images.length - 1) {
+            // Swiped left -> slide to next picture
+            slider.scrollTo({ left: (currentIdx + 1) * slideWidth, behavior: 'smooth' });
+          } else if (touchDeltaX > 0 && currentIdx > 0) {
+            // Swiped right -> slide to previous picture
+            slider.scrollTo({ left: (currentIdx - 1) * slideWidth, behavior: 'smooth' });
+          } else {
+            slider.scrollTo({ left: currentIdx * slideWidth, behavior: 'smooth' });
+          }
+        }
+      }, { passive: true });
+
+      // Synchronize active slide index & active thumbnail during scroll/swipe
+      let scrollTimeout;
+      slider.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          const slideWidth = slider.clientWidth;
+          if (slideWidth <= 0) return;
+          const activeIdx = Math.round(slider.scrollLeft / slideWidth);
+          
+          if (counterSpan) {
+            counterSpan.textContent = String(activeIdx + 1);
+          }
+
+          thumbButtons.forEach((btn, idx) => {
+            if (idx === activeIdx) {
+              btn.classList.add('active');
+              btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            } else {
+              btn.classList.remove('active');
+            }
+          });
+        }, 50);
+      }, { passive: true });
+
+      // Click thumbnail to slide smoothly to that picture
+      thumbButtons.forEach((thumb) => {
+        thumb.addEventListener('click', (e) => {
+          e.preventDefault();
+          const targetIdx = Number(thumb.dataset.thumbIndex);
+          const slideWidth = slider.clientWidth;
+          slider.scrollTo({
+            left: targetIdx * slideWidth,
+            behavior: 'smooth'
+          });
+        });
+      });
+    }
 
     document.getElementById('btn-modal-book-call')?.addEventListener('click', () => {
       state.openModal('book-call', p);

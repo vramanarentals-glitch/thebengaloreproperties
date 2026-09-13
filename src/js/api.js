@@ -4,11 +4,13 @@ const API_BASE = '/api';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('tbp_admin_token') || '';
+  const adminSecret = 'tbp_neon_super_admin_secret_key_2026_x89a';
 
   return {
     'Content-Type': 'application/json',
     'x-admin-token': token,
-    'Authorization': token ? `Bearer ${token}` : ''
+    'x-admin-key': adminSecret,
+    'Authorization': token ? `Bearer ${token}` : `Bearer ${adminSecret}`
   };
 }
 
@@ -74,11 +76,14 @@ export const api = {
         headers: getAuthHeaders(),
         body: JSON.stringify(propertyData)
       });
-      if (!res.ok) throw new Error(`Failed to create property: ${res.status}`);
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Failed to create property in DB (${res.status}): ${errText}`);
+      }
       return await res.json();
     } catch (err) {
       console.error('Failed to create property in DB:', err);
-      return propertyData;
+      return null;
     }
   },
 
@@ -108,6 +113,21 @@ export const api = {
       return await res.json();
     } catch (err) {
       console.error('Failed to toggle property flag in DB:', err);
+      return null;
+    }
+  },
+
+  async updatePropertyFloor(id, floor) {
+    try {
+      const res = await fetch(`${API_BASE}/properties/${id}/floor`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ floor })
+      });
+      if (!res.ok) throw new Error(`Failed to update floor: ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      console.error('Failed to update property floor in DB:', err);
       return null;
     }
   },

@@ -24,7 +24,7 @@ export function renderListPropertyModal() {
             </div>
             <div>
               <h3 class="font-heading" style="font-size: 1.5rem;">List Your Property in Bengaluru</h3>
-              <p style="font-size: 0.85rem; color: var(--text-secondary);">Post your 0% brokerage rental listing and reach thousands of verified tenants across Bangalore.</p>
+              <p style="font-size: 0.85rem; color: var(--text-secondary);">Post your verified rental listing and reach thousands of prospective tenants across Bangalore.</p>
             </div>
           </div>
 
@@ -78,6 +78,59 @@ export function renderListPropertyModal() {
                   <option value="Semi-Furnished" selected>Semi-Furnished</option>
                   <option value="Unfurnished">Unfurnished</option>
                 </select>
+              </div>
+            <div class="modal-grid-2col">
+              <div class="input-field-group">
+                <label>Floor Level</label>
+                <input type="text" id="lp-floor" placeholder="e.g. 3rd of 8, Ground Floor, 2nd Floor" list="lp-floor-datalist" required />
+                <datalist id="lp-floor-datalist">
+                  <option value="Ground Floor"></option>
+                  <option value="1st Floor"></option>
+                  <option value="2nd Floor"></option>
+                  <option value="3rd Floor"></option>
+                  <option value="3rd of 8"></option>
+                  <option value="4th Floor"></option>
+                  <option value="5th Floor"></option>
+                  <option value="Top Floor / Penthouse"></option>
+                </datalist>
+              </div>
+
+              <div class="input-field-group">
+                <label>Facing (Direction)</label>
+                <select id="lp-facing" class="search-select" style="padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input);">
+                  <option value="East Facing" selected>East Facing</option>
+                  <option value="North Facing">North Facing</option>
+                  <option value="North-East Facing">North-East Facing</option>
+                  <option value="West Facing">West Facing</option>
+                  <option value="South Facing">South Facing</option>
+                  <option value="South-East Facing">South-East Facing</option>
+                  <option value="North-West Facing">North-West Facing</option>
+                  <option value="South-West Facing">South-West Facing</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="input-field-group">
+              <label style="font-weight: 700; margin-bottom: 0.5rem; display: block;">
+                <i class="fa-solid fa-list-check" style="color: var(--accent-indigo);"></i> Society & Unit Amenities
+              </label>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.65rem; background: var(--bg-input); padding: 0.85rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); user-select: none;">
+                  <input type="checkbox" name="lp-amenity" value="Power Backup" checked style="width: 18px; height: 18px; accent-color: var(--accent-indigo); cursor: pointer;" />
+                  <span><i class="fa-solid fa-bolt" style="color: #f59e0b; width: 16px;"></i> Power Backup</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); user-select: none;">
+                  <input type="checkbox" name="lp-amenity" value="Lift" checked style="width: 18px; height: 18px; accent-color: var(--accent-indigo); cursor: pointer;" />
+                  <span><i class="fa-solid fa-elevator" style="color: var(--accent-indigo); width: 16px;"></i> Lift</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); user-select: none;">
+                  <input type="checkbox" name="lp-amenity" value="Car Parking" checked style="width: 18px; height: 18px; accent-color: var(--accent-indigo); cursor: pointer;" />
+                  <span><i class="fa-solid fa-square-parking" style="color: #3b82f6; width: 16px;"></i> Car Parking</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); user-select: none;">
+                  <input type="checkbox" name="lp-amenity" value="24/7 Security" checked style="width: 18px; height: 18px; accent-color: var(--accent-indigo); cursor: pointer;" />
+                  <span><i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald); width: 16px;"></i> 24/7 Security</span>
+                </label>
               </div>
             </div>
 
@@ -236,6 +289,11 @@ export function renderListPropertyModal() {
     const furnishing = document.getElementById('lp-furnishing').value;
     const ownerName = document.getElementById('lp-owner-name').value;
     const ownerPhone = document.getElementById('lp-owner-phone').value;
+    const floor = document.getElementById('lp-floor')?.value.trim() || '3rd Floor';
+    const facing = document.getElementById('lp-facing')?.value || 'East Facing';
+    const selectedAmenities = Array.from(
+      document.querySelectorAll('input[name="lp-amenity"]:checked')
+    ).map(el => el.value);
 
     const propertyId = `prop-custom-${Date.now()}`;
 
@@ -285,13 +343,13 @@ export function renderListPropertyModal() {
       furnishing,
       sqft,
       bathrooms: 2,
-      floor: '3rd of 8',
-      facing: 'East Facing',
+      floor,
+      facing,
       availableFrom: 'Immediate',
       preferredTenants: 'Any',
       images: finalImages,
-      amenities: ['Power Backup', 'Lift', 'Car Parking', '24/7 Security'],
-      description: `Newly listed ${bhkText} apartment in prime ${locality}. Directly posted by property owner with 0% brokerage fees.`,
+      amenities: selectedAmenities.length > 0 ? selectedAmenities : ['Power Backup', 'Lift', 'Car Parking', '24/7 Security'],
+      description: `Newly listed ${bhkText} apartment in prime ${locality}. Directly posted by property owner.`,
       ownerName,
       ownerPhone,
       ownerType: 'Direct Owner'

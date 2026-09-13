@@ -18,10 +18,9 @@ export function renderPropertyGrid() {
       <div class="sort-container">
         <label for="sort-select" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">Sort By:</label>
         <select id="sort-select" class="sort-select">
-          <option value="featured" ${state.sortBy === 'featured' ? 'selected' : ''}>Featured First</option>
+          <option value="newest" ${state.sortBy === 'newest' ? 'selected' : ''}>Newest Added</option>
           <option value="price-low" ${state.sortBy === 'price-low' ? 'selected' : ''}>Price: Low to High</option>
           <option value="price-high" ${state.sortBy === 'price-high' ? 'selected' : ''}>Price: High to Low</option>
-          <option value="newest" ${state.sortBy === 'newest' ? 'selected' : ''}>Newest Added</option>
         </select>
       </div>
     `;
@@ -105,8 +104,6 @@ export function renderPropertyGrid() {
           <div class="card-badges">
             <span class="badge" style="background: #10b981; color: #ffffff; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-key"></i> FOR RENT</span>
             ${p.isVerified ? `<span class="badge badge-verified"><i class="fa-solid fa-shield-halved"></i> Verified</span>` : ''}
-            ${p.zeroBrokerage ? `<span class="badge badge-brokerage">0% Brokerage</span>` : ''}
-            ${p.isFeatured ? `<span class="badge badge-featured">★ Featured</span>` : ''}
           </div>
         </div>
 

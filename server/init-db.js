@@ -95,9 +95,7 @@ export async function initializeDatabase() {
   await pool.query(createTablesQuery);
   console.log('Database tables created/verified successfully in Neon DB.');
 
-  // Clean up any previously seeded mock properties
-  await pool.query("DELETE FROM properties WHERE id LIKE 'prop-1%';");
-  console.log('Cleared hardcoded mock properties from Neon DB.');
+  // Properties are preserved permanently - only deleted when admin explicitly requests deletion.
 
   // Check contact_settings seeding
   const contactRes = await pool.query('SELECT COUNT(*) FROM contact_settings');
@@ -131,8 +129,7 @@ export async function initializeDatabase() {
     await pool.query(insertContact, [JSON.stringify(services)]);
   }
 
-  // Clean up any sample leads tied to hardcoded mock properties
-  await pool.query("DELETE FROM leads WHERE id LIKE 'lead-1%';");
+  // Leads are preserved permanently - only deleted when admin explicitly requests deletion.
 
   // Create / sync default admin user from .env credentials
   const adminEmail = (process.env.ADMIN_EMAIL || 'vramanarentals@gmail.com').trim().toLowerCase();
