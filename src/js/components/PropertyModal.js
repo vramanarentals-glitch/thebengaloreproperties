@@ -83,7 +83,8 @@ export function renderPropertyModal() {
                 <div class="gallery-slider-track" id="property-gallery-slider">
                   ${p.images.map((img, idx) => `
                     <div class="gallery-slide-item" data-slide-index="${idx}">
-                      <img src="${img}" alt="${p.title} - Photo ${idx + 1}" loading="${idx === 0 ? 'eager' : 'lazy'}" />
+                      <div class="gallery-ambient-bg" style="background-image: url('${img}');" aria-hidden="true"></div>
+                      <img class="gallery-main-img" src="${img}" alt="${p.title} - Photo ${idx + 1}" loading="${idx === 0 ? 'eager' : 'lazy'}" />
                     </div>
                   `).join('')}
                 </div>
