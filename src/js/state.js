@@ -61,9 +61,28 @@ class AppState {
     };
     this.contactInfo = savedContactInfo ? JSON.parse(savedContactInfo) : defaultContactInfo;
 
-    // Authentication State
+    // Invalidate legacy admin sessions from old password era
+    if (typeof localStorage !== 'undefined') {
+      if (localStorage.getItem('tbp_admin_pw_version') !== '2026_ramana@123') {
+        localStorage.removeItem('tbp_admin_auth');
+        localStorage.removeItem('tbp_admin_token');
+        try {
+          const u = JSON.parse(localStorage.getItem('tbp_user') || 'null');
+          if (u && (u.isAdmin || u.email === 'vramanarentals@gmail.com')) {
+            localStorage.removeItem('tbp_user');
+          }
+        } catch (e) {}
+        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123');
+      }
+    }
+
+    // Current User Auth State
     const savedUser = localStorage.getItem('tbp_user');
     this.currentUser = savedUser ? JSON.parse(savedUser) : null;
+    if (this.currentUser && this.currentUser.email === 'vramanarentals@gmail.com' && !this.currentUser.isAdmin) {
+      this.currentUser = null;
+      localStorage.removeItem('tbp_user');
+    }
 
     const savedRegUsers = localStorage.getItem('tbp_registered_users');
     this.registeredUsers = savedRegUsers ? JSON.parse(savedRegUsers) : [];
@@ -78,7 +97,7 @@ class AppState {
 
     // Admin Portal State
     const savedAdminAuth = localStorage.getItem('tbp_admin_auth') === 'true';
-    this.isAdminLoggedIn = Boolean(this.currentUser && (savedAdminAuth || this.currentUser?.isAdmin || this.currentUser?.email === 'vramanarentals@gmail.com'));
+    this.isAdminLoggedIn = Boolean(this.currentUser && this.currentUser.isAdmin && savedAdminAuth);
     this.adminTab = 'dashboard'; // 'dashboard' | 'properties' | 'add-property' | 'leads' | 'settings'
 
     // Tenant Leads / Inquiries
@@ -472,7 +491,15 @@ class AppState {
       return { success: false, message: 'Please enter both email and password.' };
     }
 
-    const res = await api.loginUser(email, password);
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPass = password.trim();
+
+    // Explicitly reject old legacy password
+    if (cleanPass.toLowerCase() === 'ramana rentals') {
+      return { success: false, message: 'Access Denied: Invalid administrator credentials.' };
+    }
+
+    const res = await api.loginUser(cleanEmail, cleanPass);
     if (res && res.success && res.user) {
       this.currentUser = res.user;
       this.isAdminLoggedIn = Boolean(res.isAdmin);
@@ -480,6 +507,7 @@ class AppState {
       
       if (res.isAdmin) {
         localStorage.setItem('tbp_admin_auth', 'true');
+        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123');
         if (res.token) {
           localStorage.setItem('tbp_admin_token', res.token);
         }
@@ -492,6 +520,29 @@ class AppState {
       return res;
     }
 
+    // Static / Offline fallback (for GitHub Pages when backend API is unreachable)
+    if (!res || !res.success) {
+      if (cleanEmail === 'vramanarentals@gmail.com' && cleanPass === 'ramana@123') {
+        const adminSession = {
+          id: 'usr-admin',
+          name: 'V. RAMANA (Proprietor)',
+          email: 'vramanarentals@gmail.com',
+          provider: 'Admin Account',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=VRamana',
+          isAdmin: true
+        };
+        this.currentUser = adminSession;
+        this.isAdminLoggedIn = true;
+        localStorage.setItem('tbp_user', JSON.stringify(adminSession));
+        localStorage.setItem('tbp_admin_auth', 'true');
+        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123');
+        localStorage.setItem('tbp_admin_token', 'tbp_offline_admin_token_2026');
+        this.closeModal();
+        this.notify();
+        return { success: true, user: adminSession, isAdmin: true, token: 'tbp_offline_admin_token_2026' };
+      }
+    }
+
     return res || { success: false, message: 'Invalid credentials.' };
   }
 
@@ -499,15 +550,20 @@ class AppState {
   isAdmin() {
     const savedAdminAuth = typeof window !== 'undefined' && localStorage.getItem('tbp_admin_auth') === 'true';
     return Boolean(
-      this.isAdminLoggedIn || 
-      savedAdminAuth ||
-      (this.currentUser && (this.currentUser.isAdmin || this.currentUser.email === 'vramanarentals@gmail.com'))
+      (this.isAdminLoggedIn || savedAdminAuth) && 
+      this.currentUser && 
+      this.currentUser.isAdmin
     );
   }
 
   async adminLogin(email, password) {
+    if (!email || !password) return false;
+    const cleanPass = password.trim();
+    if (cleanPass.toLowerCase() === 'ramana rentals') {
+      return false;
+    }
     const res = await this.loginUser(email, password);
-    return res && res.success && res.isAdmin;
+    return Boolean(res && res.success && res.isAdmin);
   }
 
   adminLogout() {

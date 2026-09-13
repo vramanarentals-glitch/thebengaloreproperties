@@ -11,10 +11,7 @@ export function renderAdminPortal() {
   if (!root) return;
 
   // Check if Admin is logged in
-  const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : (
-    state.isAdminLoggedIn ||
-    Boolean(state.currentUser && (state.currentUser.isAdmin || state.currentUser.email === 'vramanarentals@gmail.com'))
-  );
+  const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : false;
   if (!isAdmin) {
     renderAdminLoginForm(root);
   } else {
@@ -174,6 +171,16 @@ function renderAdminLoginForm(root) {
     const errMsg = document.getElementById('admin-auth-error-msg');
 
     if (errBox) errBox.style.display = 'none';
+
+    if (pass.toLowerCase() === 'ramana rentals') {
+      if (errBox && errMsg) {
+        errMsg.innerText = 'Access Denied: Legacy password is no longer valid. Please use ramana@123';
+        errBox.style.display = 'block';
+      }
+      showToast('❌ Access Denied: Legacy password is no longer valid!');
+      return;
+    }
+
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying credentials...';

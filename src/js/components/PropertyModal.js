@@ -11,10 +11,7 @@ export function renderPropertyModal() {
   }
 
   const p = state.activeProperty;
-  const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : (
-    state.isAdminLoggedIn ||
-    Boolean(state.currentUser && (state.currentUser.isAdmin || state.currentUser.email === 'vramanarentals@gmail.com'))
-  );
+  const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : false;
 
   if (state.activeModal === 'property-details' && p) {
     root.innerHTML = `

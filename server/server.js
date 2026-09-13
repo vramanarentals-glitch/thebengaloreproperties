@@ -662,6 +662,11 @@ app.post('/api/auth/login', async (req, res) => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPass = password.trim();
 
+    // Explicitly reject legacy admin password under all circumstances
+    if (cleanPass.toLowerCase() === 'ramana rentals') {
+      return res.status(401).json({ success: false, message: 'Invalid email or password!' });
+    }
+
     // Check admin credentials against environment config
     if (cleanEmail === ADMIN_EMAIL) {
       const adminRes = await query('SELECT * FROM users WHERE email = $1', [cleanEmail]);
