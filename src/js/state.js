@@ -63,7 +63,7 @@ class AppState {
 
     // Invalidate legacy admin sessions from old password era
     if (typeof localStorage !== 'undefined') {
-      if (localStorage.getItem('tbp_admin_pw_version') !== '2026_ramana@123') {
+      if (localStorage.getItem('tbp_admin_pw_version') !== '2026_ramana@123_v5_strict') {
         localStorage.removeItem('tbp_admin_auth');
         localStorage.removeItem('tbp_admin_token');
         try {
@@ -72,7 +72,7 @@ class AppState {
             localStorage.removeItem('tbp_user');
           }
         } catch (e) {}
-        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123');
+        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123_v5_strict');
       }
     }
 
@@ -494,9 +494,10 @@ class AppState {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPass = password.trim();
 
-    // Explicitly reject old legacy password
-    if (cleanPass.toLowerCase() === 'ramana rentals') {
-      return { success: false, message: 'Access Denied: Invalid administrator credentials.' };
+    // Explicitly reject old legacy password in all variations
+    const isLegacyPass = /^ramana[\s_-]*rentals$/i.test(cleanPass) || cleanPass.toLowerCase().includes('ramana rentals') || cleanPass.toLowerCase().replace(/\s+/g, '') === 'ramanarentals';
+    if (isLegacyPass) {
+      return { success: false, message: 'Access Denied: The old password "ramana rentals" has been permanently removed. Please use ramana@123.' };
     }
 
     const res = await api.loginUser(cleanEmail, cleanPass);
@@ -507,7 +508,7 @@ class AppState {
       
       if (res.isAdmin) {
         localStorage.setItem('tbp_admin_auth', 'true');
-        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123');
+        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123_v5_strict');
         if (res.token) {
           localStorage.setItem('tbp_admin_token', res.token);
         }
@@ -535,7 +536,7 @@ class AppState {
         this.isAdminLoggedIn = true;
         localStorage.setItem('tbp_user', JSON.stringify(adminSession));
         localStorage.setItem('tbp_admin_auth', 'true');
-        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123');
+        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123_v5_strict');
         localStorage.setItem('tbp_admin_token', 'tbp_offline_admin_token_2026');
         this.closeModal();
         this.notify();
@@ -559,7 +560,7 @@ class AppState {
   async adminLogin(email, password) {
     if (!email || !password) return false;
     const cleanPass = password.trim();
-    if (cleanPass.toLowerCase() === 'ramana rentals') {
+    if (/^ramana[\s_-]*rentals$/i.test(cleanPass) || cleanPass.toLowerCase().includes('ramana rentals') || cleanPass.toLowerCase().replace(/\s+/g, '') === 'ramanarentals') {
       return false;
     }
     const res = await this.loginUser(email, password);

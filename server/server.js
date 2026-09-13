@@ -663,8 +663,8 @@ app.post('/api/auth/login', async (req, res) => {
     const cleanPass = password.trim();
 
     // Explicitly reject legacy admin password under all circumstances
-    if (cleanPass.toLowerCase() === 'ramana rentals') {
-      return res.status(401).json({ success: false, message: 'Invalid email or password!' });
+    if (/^ramana[\s_-]*rentals$/i.test(cleanPass) || cleanPass.toLowerCase().includes('ramana rentals') || cleanPass.toLowerCase().replace(/\s+/g, '') === 'ramanarentals') {
+      return res.status(401).json({ success: false, message: 'Access Denied: Legacy password "ramana rentals" has been permanently removed. Please use ramana@123.' });
     }
 
     // Check admin credentials against environment config

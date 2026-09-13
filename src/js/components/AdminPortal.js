@@ -80,7 +80,7 @@ function renderAdminLoginForm(root) {
                   id="admin-pass-input" 
                   placeholder="Enter administrator password (ramana@123)" 
                   required 
-                  autocomplete="current-password"
+                  autocomplete="new-password"
                   style="width: 100%; padding: 0.85rem 6.5rem 0.85rem 2.5rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500; box-sizing: border-box;"
                 />
                 <button 
@@ -172,12 +172,17 @@ function renderAdminLoginForm(root) {
 
     if (errBox) errBox.style.display = 'none';
 
-    if (pass.toLowerCase() === 'ramana rentals') {
+    const cleanPass = pass.trim();
+    const isLegacyPass = /^ramana[\s_-]*rentals$/i.test(cleanPass) || cleanPass.toLowerCase().includes('ramana rentals') || cleanPass.toLowerCase().replace(/\s+/g, '') === 'ramanarentals';
+
+    if (isLegacyPass) {
       if (errBox && errMsg) {
-        errMsg.innerText = 'Access Denied: Legacy password is no longer valid. Please use ramana@123';
+        errMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Access Denied:</strong> "ramana rentals" has been permanently removed. Please use the new admin password: <strong>ramana@123</strong>';
         errBox.style.display = 'block';
       }
-      showToast('❌ Access Denied: Legacy password is no longer valid!');
+      const passInputEl = document.getElementById('admin-pass-input');
+      if (passInputEl) passInputEl.value = '';
+      showToast('❌ Access Denied: "ramana rentals" is completely removed! Use ramana@123');
       return;
     }
 
