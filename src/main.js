@@ -52,7 +52,7 @@ function checkAdminRoute() {
   const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
   const hash = window.location.hash.toLowerCase();
   if (path === '/admin' || hash === '#admin') {
-    const isAdmin = state.isAdminLoggedIn && state.currentUser?.email === 'vramanarentals@gmail.com';
+    const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : state.isAdminLoggedIn;
     if (isAdmin && state.activeModal !== 'admin-portal') {
       state.openModal('admin-portal');
     }

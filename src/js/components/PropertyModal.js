@@ -11,11 +11,11 @@ export function renderPropertyModal() {
   }
 
   const p = state.activeProperty;
-  const isAdmin = Boolean(
-    (typeof state.isAdmin === 'function' && state.isAdmin()) ||
-    state.isAdminLoggedIn ||
-    (state.currentUser && (state.currentUser.isAdmin || state.currentUser.email === 'vramanarentals@gmail.com')) ||
-    (typeof window !== 'undefined' && localStorage.getItem('tbp_admin_auth') === 'true')
+  const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : (
+    state.currentUser?.email !== 'vramanarentals@gmail.com' && (
+      state.isAdminLoggedIn ||
+      Boolean(state.currentUser && (state.currentUser.isAdmin || state.currentUser.email === 'ramuramana92@gmail.com'))
+    )
   );
 
   if (state.activeModal === 'property-details' && p) {

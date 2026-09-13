@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'vramanarentals@gmail.com').trim().toLowerCase();
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'ramuramana92@gmail.com').trim().toLowerCase();
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ramana@123';
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'tbp_neon_super_admin_secret_key_2026_x89a';
 
@@ -606,7 +606,7 @@ app.post('/api/auth/register', async (req, res) => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPass = password.trim();
 
-    if (cleanEmail === 'vramanarentals@gmail.com') {
+    if (cleanEmail === ADMIN_EMAIL) {
       return res.status(400).json({ success: false, message: 'This email is reserved for Admin login.' });
     }
 
