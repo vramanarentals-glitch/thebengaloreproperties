@@ -118,60 +118,60 @@ export function renderPropertyModal() {
                 <!-- Left Column: Specs, Description, Amenities, Proximity -->
                 <div class="details-main-col">
 
-                  <!-- Key Specs Matrix Bar -->
+                  <!-- Key Specs Matrix Bar (Balanced 4x2 Grid) -->
                   <div class="details-specs-grid">
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-bed"></i></div>
-                      <div>
+                      <div class="details-spec-content">
                         <div class="details-spec-label">BHK TYPE</div>
                         <div class="details-spec-val">${p.bhk}</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-ruler-combined"></i></div>
-                      <div>
+                      <div class="details-spec-content">
                         <div class="details-spec-label">SUPER AREA</div>
                         <div class="details-spec-val">${p.sqft} sq ft</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-couch"></i></div>
-                      <div>
+                      <div class="details-spec-content">
                         <div class="details-spec-label">FURNISHING</div>
                         <div class="details-spec-val">${p.furnishing}</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-stairs"></i></div>
-                      <div>
+                      <div class="details-spec-content">
                         <div class="details-spec-label">FLOOR LEVEL</div>
                         <div class="details-spec-val">${p.floor}</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-compass"></i></div>
-                      <div>
+                      <div class="details-spec-content">
                         <div class="details-spec-label">FACING</div>
                         <div class="details-spec-val">${p.facing}</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-bath"></i></div>
-                      <div>
+                      <div class="details-spec-content">
                         <div class="details-spec-label">BATHROOMS</div>
-                        <div class="details-spec-val">${p.bathrooms || 2} Bathrooms</div>
+                        <div class="details-spec-val">${p.bathrooms || 2} Baths</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-clock"></i></div>
-                      <div>
+                      <div class="details-spec-content">
                         <div class="details-spec-label">AVAILABLE FROM</div>
                         <div class="details-spec-val">${p.availableFrom || 'Immediate'}</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-users"></i></div>
-                      <div>
+                      <div class="details-spec-content">
                         <div class="details-spec-label">PREFERRED TENANTS</div>
                         <div class="details-spec-val">${p.preferredTenants || 'Any'}</div>
                       </div>
