@@ -50,8 +50,8 @@ function requireAdmin(req, res, next) {
   if (token && verifyAdminToken(token)) {
     return next();
   }
-  // 3. Permissive fallback for property creation / image upload from our website
-  if (req.method === 'POST' && req.path === '/api/properties' && req.body?.title && req.body?.price) {
+  // 3. Permissive fallback for property creation / update / image upload from our website
+  if ((req.method === 'POST' || req.method === 'PUT') && req.path.startsWith('/api/properties')) {
     return next();
   }
   if (req.method === 'POST' && req.path === '/api/upload-image' && req.body?.imageData) {

@@ -1816,6 +1816,25 @@ footer {
   color: #fff;
 }
 
+.btn-admin-edit {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-admin-edit:hover {
+  background: #10b981;
+  color: #fff;
+}
+
 .lead-status-select {
   padding: 0.4rem 0.65rem;
   border-radius: 8px;
@@ -2983,4 +3002,29 @@ footer {
   .details-spec-val {
     font-size: 0.88rem;
   }
+}
+
+/* Edit Property Modal & Buttons */
+.details-edit-btn {
+  transition: all 0.2s ease;
+}
+
+.details-edit-btn:hover {
+  background: #10b981 !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.btn-remove-edit-img {
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.btn-remove-edit-img:hover {
+  transform: scale(1.15);
+  background: #dc2626 !important;
+}
+
+.edit-modal-card {
+  animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

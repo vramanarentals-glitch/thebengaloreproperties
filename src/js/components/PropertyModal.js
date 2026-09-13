@@ -39,6 +39,9 @@ export function renderPropertyModal() {
                 </div>
                 <div style="font-size: 0.72rem; color: var(--text-muted);">Dep: ₹${p.deposit.toLocaleString('en-IN')}</div>
               </div>
+              <button type="button" class="nav-btn details-edit-btn" id="btn-edit-details" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; font-weight: 700; padding: 0.55rem 0.95rem; font-size: 0.85rem; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; text-decoration: none;" title="Edit Property Details">
+                <i class="fa-solid fa-pen-to-square"></i> <span>Edit Property</span>
+              </button>
               <a href="tel:${p.ownerPhone}" class="nav-btn nav-btn-primary hide-mobile" style="padding: 0.55rem 1rem; font-size: 0.85rem; border-radius: 10px; text-decoration: none;">
                 <i class="fa-solid fa-phone"></i> Call Direct
               </a>
@@ -61,6 +64,9 @@ export function renderPropertyModal() {
                   <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; align-items: center;">
                     <span class="badge" style="background: #10b981; color: #fff; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-key"></i> FOR RENT</span>
                     ${p.isVerified ? `<span class="badge badge-verified">🛡️ Verified Property</span>` : ''}
+                    <button type="button" class="badge" id="btn-badge-edit-details" style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #10b981; font-weight: 800; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.65rem; border-radius: 6px;" title="Edit Property Details">
+                      <i class="fa-solid fa-pen-to-square"></i> Edit Listing
+                    </button>
                   </div>
                   <h1 class="details-page-title font-heading">${p.title}</h1>
                   <div class="details-page-address">
@@ -233,6 +239,10 @@ export function renderPropertyModal() {
                       <button type="button" id="btn-modal-schedule-tour" class="nav-btn" style="width: 100%; justify-content: center; background: var(--accent-indigo); color: #fff; border: none; font-weight: 700; padding: 0.85rem 1rem; font-size: 0.92rem; border-radius: 12px;">
                         <i class="fa-solid fa-calendar-plus"></i> Schedule Property Visit
                       </button>
+
+                      <button type="button" id="btn-side-edit-details" class="nav-btn" style="width: 100%; justify-content: center; background: rgba(16, 185, 129, 0.12); border: 1px solid #10b981; color: #10b981; font-weight: 700; padding: 0.85rem 1rem; font-size: 0.92rem; border-radius: 12px; margin-top: 0.35rem;">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Property Details
+                      </button>
                     </div>
 
                     <!-- Office Details Box -->
@@ -399,6 +409,15 @@ export function renderPropertyModal() {
     document.getElementById('btn-modal-schedule-tour')?.addEventListener('click', () => {
       state.openModal('schedule-visit', p);
     });
+
+    const handleOpenEdit = (e) => {
+      e?.preventDefault();
+      state.openModal('edit-property', p);
+    };
+
+    document.getElementById('btn-edit-details')?.addEventListener('click', handleOpenEdit);
+    document.getElementById('btn-badge-edit-details')?.addEventListener('click', handleOpenEdit);
+    document.getElementById('btn-side-edit-details')?.addEventListener('click', handleOpenEdit);
   } else if (state.activeModal === 'schedule-visit' && p) {
     const today = new Date().toISOString().split('T')[0];
 
@@ -747,6 +766,360 @@ export function renderPropertyModal() {
       // Launch direct WhatsApp confirmation
       const waMsg = `Hello V. Ramana, I have requested a callback on ${date} (${slot}) regarding ${service} in ${locality}.\nName: ${name}\nPhone: ${phone}${notes ? '\nNote: ' + notes : ''}`;
       window.open(`https://wa.me/${c.whatsapp.replace('+', '')}?text=${encodeURIComponent(waMsg)}`, '_blank');
+    });
+  } else if (state.activeModal === 'edit-property' && p) {
+    let currentPhotos = Array.isArray(p.images) && p.images.length > 0 ? [...p.images] : [];
+
+    root.innerHTML = `
+      <div class="modal-overlay modal-overlay-details-fullscreen" id="modal-backdrop" style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); overflow-y: auto; padding: 1.5rem 1rem; display: flex; align-items: center; justify-content: center;">
+        <div class="modal-card edit-modal-card" style="max-width: 840px; width: 100%; max-height: 92vh; margin: auto; background: var(--bg-surface); border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6); overflow: hidden; display: flex; flex-direction: column;">
+          
+          <!-- Sticky Top Header -->
+          <div style="background: var(--bg-surface); border-bottom: 1px solid var(--border-color); padding: 1.15rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <button type="button" class="details-back-btn" id="btn-back-from-edit" style="padding: 0.45rem 0.85rem; font-size: 0.82rem;">
+                <i class="fa-solid fa-arrow-left"></i> <span>Back to Details</span>
+              </button>
+              <div>
+                <h3 class="font-heading" style="margin: 0; font-size: 1.25rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.45rem;">
+                  <i class="fa-solid fa-pen-to-square" style="color: var(--accent-emerald);"></i> Edit Property Details
+                </h3>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                  Editing: <strong style="color: var(--text-primary);">${p.title}</strong> (${p.locality})
+                </div>
+              </div>
+            </div>
+            <button class="modal-close-btn" id="btn-close-edit" style="position: static !important; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;" title="Close Edit">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Scrollable Edit Form Body -->
+          <div style="flex: 1 1 0%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 1.5rem 1.75rem 2.5rem 1.75rem; box-sizing: border-box;">
+            <form id="form-edit-property" style="display: flex; flex-direction: column; gap: 1.25rem;">
+              
+              <!-- Title & Locality -->
+              <div class="modal-grid-2col">
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Property Title *</label>
+                  <input type="text" id="edit-p-title" value="${p.title ? p.title.replace(/"/g, '&quot;') : ''}" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                </div>
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Locality / Area *</label>
+                  <input type="text" id="edit-p-locality" value="${p.locality ? p.locality.replace(/"/g, '&quot;') : ''}" list="edit-localities-datalist" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <datalist id="edit-localities-datalist">
+                    <option value="Murugeshpalaya"></option>
+                    <option value="Indiranagar"></option>
+                    <option value="Koramangala"></option>
+                    <option value="Whitefield"></option>
+                    <option value="HSR Layout"></option>
+                    <option value="Domlur"></option>
+                    <option value="HAL"></option>
+                    <option value="Marathahalli"></option>
+                    <option value="Old Airport Road"></option>
+                    <option value="Bellandur"></option>
+                    <option value="Electronic City"></option>
+                    <option value="JP Nagar"></option>
+                    <option value="Jayanagar"></option>
+                    <option value="BTM Layout"></option>
+                    <option value="Hebbal"></option>
+                    <option value="Sarjapur Road"></option>
+                  </datalist>
+                </div>
+              </div>
+
+              <!-- Address -->
+              <div class="input-field-group">
+                <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Full Address *</label>
+                <input type="text" id="edit-p-address" value="${p.address ? p.address.replace(/"/g, '&quot;') : ''}" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+              </div>
+
+              <!-- Rent, Deposit, BHK, Super Area -->
+              <div class="modal-grid-2col">
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Monthly Rent (₹) *</label>
+                  <input type="number" id="edit-p-price" value="${p.price}" min="1000" step="500" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                </div>
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Security Deposit (₹) *</label>
+                  <input type="number" id="edit-p-deposit" value="${p.deposit}" min="1000" step="1000" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                </div>
+              </div>
+
+              <div class="modal-grid-2col">
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">BHK Type *</label>
+                  <select id="edit-p-bhk" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;">
+                    <option value="1 BHK" ${p.bhk === '1 BHK' ? 'selected' : ''}>1 BHK</option>
+                    <option value="2 BHK" ${p.bhk === '2 BHK' || p.bhk?.includes('2') ? 'selected' : ''}>2 BHK</option>
+                    <option value="3 BHK" ${p.bhk === '3 BHK' || p.bhk?.includes('3') ? 'selected' : ''}>3 BHK</option>
+                    <option value="4+ BHK" ${p.bhk === '4+ BHK' || p.bhk?.includes('4') ? 'selected' : ''}>4+ BHK / Villa</option>
+                  </select>
+                </div>
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Super Area (sq ft) *</label>
+                  <input type="number" id="edit-p-sqft" value="${p.sqft}" min="50" step="10" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                </div>
+              </div>
+
+              <!-- Furnishing, Floor, Facing, Bathrooms -->
+              <div class="modal-grid-2col">
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Furnishing *</label>
+                  <select id="edit-p-furnishing" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;">
+                    <option value="Semi-Furnished" ${p.furnishing === 'Semi-Furnished' ? 'selected' : ''}>Semi-Furnished</option>
+                    <option value="Fully Furnished" ${p.furnishing === 'Fully Furnished' ? 'selected' : ''}>Fully Furnished</option>
+                    <option value="Unfurnished" ${p.furnishing === 'Unfurnished' ? 'selected' : ''}>Unfurnished</option>
+                  </select>
+                </div>
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Floor Level *</label>
+                  <input type="text" id="edit-p-floor" value="${p.floor ? p.floor.replace(/"/g, '&quot;') : 'Ground Floor'}" list="edit-floor-datalist" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <datalist id="edit-floor-datalist">
+                    <option value="Ground Floor"></option>
+                    <option value="1st Floor"></option>
+                    <option value="2nd Floor"></option>
+                    <option value="3rd Floor"></option>
+                    <option value="3rd of 8"></option>
+                    <option value="4th Floor"></option>
+                    <option value="5th Floor"></option>
+                    <option value="Top Floor / Penthouse"></option>
+                  </datalist>
+                </div>
+              </div>
+
+              <div class="modal-grid-2col">
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Facing (Direction)</label>
+                  <select id="edit-p-facing" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;">
+                    <option value="East Facing" ${p.facing === 'East Facing' ? 'selected' : ''}>East Facing</option>
+                    <option value="North Facing" ${p.facing === 'North Facing' ? 'selected' : ''}>North Facing</option>
+                    <option value="North-East Facing" ${p.facing === 'North-East Facing' ? 'selected' : ''}>North-East Facing</option>
+                    <option value="West Facing" ${p.facing === 'West Facing' ? 'selected' : ''}>West Facing</option>
+                    <option value="South Facing" ${p.facing === 'South Facing' ? 'selected' : ''}>South Facing</option>
+                    <option value="South-East Facing" ${p.facing === 'South-East Facing' ? 'selected' : ''}>South-East Facing</option>
+                    <option value="North-West Facing" ${p.facing === 'North-West Facing' ? 'selected' : ''}>North-West Facing</option>
+                    <option value="South-West Facing" ${p.facing === 'South-West Facing' ? 'selected' : ''}>South-West Facing</option>
+                  </select>
+                </div>
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Number of Bathrooms</label>
+                  <select id="edit-p-bathrooms" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;">
+                    <option value="1" ${Number(p.bathrooms) === 1 ? 'selected' : ''}>1 Bathroom</option>
+                    <option value="2" ${Number(p.bathrooms || 2) === 2 ? 'selected' : ''}>2 Bathrooms</option>
+                    <option value="3" ${Number(p.bathrooms) === 3 ? 'selected' : ''}>3 Bathrooms</option>
+                    <option value="4" ${Number(p.bathrooms) >= 4 ? 'selected' : ''}>4+ Bathrooms</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="modal-grid-2col">
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Available From</label>
+                  <input type="text" id="edit-p-available" value="${p.availableFrom ? p.availableFrom.replace(/"/g, '&quot;') : 'Immediate'}" placeholder="e.g. Immediate, 1st of Next Month" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                </div>
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Preferred Tenants</label>
+                  <select id="edit-p-tenants" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;">
+                    <option value="Any" ${p.preferredTenants === 'Any' ? 'selected' : ''}>Any (Family or Bachelors)</option>
+                    <option value="Family Only" ${p.preferredTenants === 'Family Only' ? 'selected' : ''}>Family Only</option>
+                    <option value="Bachelors Only" ${p.preferredTenants === 'Bachelors Only' ? 'selected' : ''}>Bachelors Only</option>
+                    <option value="Company Lease" ${p.preferredTenants === 'Company Lease' ? 'selected' : ''}>Company Lease</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Amenities Checkboxes -->
+              <div class="input-field-group">
+                <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.6rem; display: block;">
+                  <i class="fa-solid fa-list-check" style="color: var(--accent-emerald);"></i> Society & Unit Amenities
+                </label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.65rem;">
+                  ${[
+                    { id: 'Power Backup', icon: 'fa-bolt', name: 'Power Backup' },
+                    { id: 'Lift', icon: 'fa-arrows-up-down', name: 'Lift' },
+                    { id: 'Car Parking', icon: 'fa-square-parking', name: 'Car Parking' },
+                    { id: '24/7 Security', icon: 'fa-shield-halved', name: '24/7 Security' },
+                    { id: 'Gym', icon: 'fa-dumbbell', name: 'Gym / Fitness Center' },
+                    { id: 'Swimming Pool', icon: 'fa-person-swimming', name: 'Swimming Pool' },
+                    { id: 'Clubhouse', icon: 'fa-champagne-glasses', name: 'Clubhouse' },
+                    { id: 'CCTV', icon: 'fa-video', name: 'CCTV Surveillance' },
+                    { id: 'Gas Pipeline', icon: 'fa-fire-burner', name: 'Piped Gas' },
+                    { id: 'Children Play Area', icon: 'fa-children', name: 'Children Play Area' }
+                  ].map(am => {
+                    const isChecked = (p.amenities || []).some(a => a.toLowerCase().includes(am.id.toLowerCase()));
+                    return `
+                      <label style="display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.85rem; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); cursor: pointer; font-size: 0.84rem; font-weight: 600;">
+                        <input type="checkbox" name="edit-amenity" value="${am.name}" ${isChecked ? 'checked' : ''} style="accent-color: var(--accent-emerald); width: 16px; height: 16px;" />
+                        <i class="fa-solid ${am.icon}" style="color: var(--accent-emerald); width: 16px; text-align: center;"></i>
+                        <span>${am.name}</span>
+                      </label>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- Photos Management -->
+              <div class="input-field-group">
+                <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.45rem; display: block;">
+                  <i class="fa-solid fa-images" style="color: var(--accent-emerald);"></i> Property Photos (<span id="edit-photos-count">${currentPhotos.length}</span>)
+                </label>
+                
+                <div id="edit-photos-preview" style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.85rem;"></div>
+
+                <input type="file" id="edit-p-file" accept="image/*" multiple style="display: none;" />
+                <label for="edit-p-file" id="edit-p-dropzone" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.25rem; border: 2px dashed rgba(16, 185, 129, 0.4); border-radius: 14px; background: rgba(16, 185, 129, 0.05); cursor: pointer; text-align: center;">
+                  <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.8rem; color: var(--accent-emerald); margin-bottom: 0.4rem;"></i>
+                  <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">Tap to Add More Photos from Camera / Gallery</span>
+                  <span style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Supports mobile phone photos & HD desktop pictures</span>
+                </label>
+                <div id="edit-p-upload-status" style="display: none; margin-top: 0.4rem; font-size: 0.82rem; color: var(--accent-emerald); font-weight: 600; text-align: center;"></div>
+              </div>
+
+              <!-- Description -->
+              <div class="input-field-group">
+                <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Property Description</label>
+                <textarea id="edit-p-desc" rows="3" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;">${p.description || ''}</textarea>
+              </div>
+
+              <!-- Owner Name & Phone -->
+              <div class="modal-grid-2col">
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Owner / Contact Name</label>
+                  <input type="text" id="edit-p-owner-name" value="${p.ownerName ? p.ownerName.replace(/"/g, '&quot;') : 'V. RAMANA'}" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                </div>
+                <div class="input-field-group">
+                  <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Owner Contact Phone</label>
+                  <input type="tel" id="edit-p-owner-phone" value="${p.ownerPhone ? p.ownerPhone.replace(/"/g, '&quot;') : '+91 80504 07710'}" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                </div>
+              </div>
+
+              <!-- Action Footer -->
+              <div style="display: flex; gap: 0.85rem; justify-content: flex-end; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+                <button type="button" id="btn-cancel-edit-form" class="nav-btn" style="padding: 0.85rem 1.5rem; background: var(--bg-glass); border: 1px solid var(--border-color); color: var(--text-primary); font-weight: 700;">
+                  Cancel
+                </button>
+                <button type="submit" id="btn-save-edit-form" class="nav-btn nav-btn-primary" style="padding: 0.85rem 1.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.5rem;">
+                  <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    const returnToDetails = () => {
+      state.openModal('property-details', p);
+    };
+
+    document.getElementById('btn-back-from-edit')?.addEventListener('click', returnToDetails);
+    document.getElementById('btn-close-edit')?.addEventListener('click', returnToDetails);
+    document.getElementById('btn-cancel-edit-form')?.addEventListener('click', returnToDetails);
+
+    const photosPreview = document.getElementById('edit-photos-preview');
+    const photosCount = document.getElementById('edit-photos-count');
+
+    function renderEditPhotos() {
+      if (!photosPreview) return;
+      if (photosCount) photosCount.textContent = String(currentPhotos.length);
+      if (currentPhotos.length === 0) {
+        photosPreview.innerHTML = '<div style="font-size: 0.82rem; color: var(--text-muted); font-style: italic;">No photos yet. Please add at least one photo below.</div>';
+        return;
+      }
+      photosPreview.innerHTML = currentPhotos.map((src, idx) => `
+        <div style="position: relative; width: 88px; height: 88px; border-radius: 12px; overflow: hidden; border: 2px solid rgba(16, 185, 129, 0.4); flex-shrink: 0;">
+          <img src="${src}" style="width: 100%; height: 100%; object-fit: cover;" />
+          <button type="button" class="btn-remove-edit-img" data-img-idx="${idx}" style="position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: #ef4444; color: #fff; border: 1.5px solid #fff; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.5); z-index: 10;" title="Delete Photo">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `).join('');
+
+      photosPreview.querySelectorAll('[data-img-idx]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const idx = Number(btn.dataset.imgIdx);
+          currentPhotos.splice(idx, 1);
+          renderEditPhotos();
+        });
+      });
+    }
+
+    renderEditPhotos();
+
+    // Handle adding more photos
+    const fileInput = document.getElementById('edit-p-file');
+    const statusBox = document.getElementById('edit-p-upload-status');
+
+    fileInput?.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      if (statusBox) {
+        statusBox.style.display = 'block';
+        statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Reading ${files.length} photo(s)...`;
+      }
+      let loaded = 0;
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          currentPhotos.push(ev.target.result);
+          loaded++;
+          if (loaded === files.length) {
+            if (statusBox) {
+              statusBox.innerHTML = `✅ Added ${files.length} new photo(s)!`;
+              setTimeout(() => { if (statusBox) statusBox.style.display = 'none'; }, 2000);
+            }
+            renderEditPhotos();
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // Form submit listener
+    document.getElementById('form-edit-property')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('btn-save-edit-form');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving changes...';
+      }
+
+      const bhkVal = document.getElementById('edit-p-bhk').value;
+      const bhkType = bhkVal === '1 BHK' ? '1bhk' : bhkVal === '2 BHK' ? '2bhk' : bhkVal === '3 BHK' ? '3bhk' : '4bhk';
+      const selectedAmenities = Array.from(
+        document.querySelectorAll('input[name="edit-amenity"]:checked')
+      ).map(el => el.value);
+
+      const updatedPayload = {
+        title: document.getElementById('edit-p-title').value.trim(),
+        locality: document.getElementById('edit-p-locality').value.trim(),
+        address: document.getElementById('edit-p-address').value.trim(),
+        price: Number(document.getElementById('edit-p-price').value),
+        deposit: Number(document.getElementById('edit-p-deposit').value),
+        bhk: bhkVal,
+        bhkType: bhkType,
+        sqft: Number(document.getElementById('edit-p-sqft').value),
+        furnishing: document.getElementById('edit-p-furnishing').value,
+        floor: document.getElementById('edit-p-floor').value.trim(),
+        facing: document.getElementById('edit-p-facing').value,
+        bathrooms: Number(document.getElementById('edit-p-bathrooms').value),
+        availableFrom: document.getElementById('edit-p-available').value.trim() || 'Immediate',
+        preferredTenants: document.getElementById('edit-p-tenants').value,
+        amenities: selectedAmenities,
+        images: currentPhotos.length > 0 ? currentPhotos : p.images,
+        description: document.getElementById('edit-p-desc').value.trim(),
+        ownerName: document.getElementById('edit-p-owner-name').value.trim(),
+        ownerPhone: document.getElementById('edit-p-owner-phone').value.trim()
+      };
+
+      await state.updateProperty(p.id, updatedPayload);
+      showToast(`✨ Property "${updatedPayload.title}" updated successfully!`);
+      state.openModal('property-details', { ...p, ...updatedPayload });
     });
   }
 

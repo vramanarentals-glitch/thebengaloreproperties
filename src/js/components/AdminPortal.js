@@ -503,6 +503,9 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
                   </td>
                   <td>
                     <div style="display: flex; gap: 0.4rem;">
+                      <button class="btn-admin-edit" data-edit-prop="${p.id}" title="Edit Property Details">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
                       <button class="btn-admin-del" data-del-prop="${p.id}" title="Delete Property">
                         <i class="fa-solid fa-trash-can"></i>
                       </button>
@@ -539,9 +542,14 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
                   </div>
                   <div style="font-weight: 800; color: var(--accent-emerald); margin-top: 2px; font-size: 0.88rem;">₹${p.price.toLocaleString('en-IN')}/mo</div>
                 </div>
-                <button class="btn-admin-del" data-del-prop="${p.id}" style="align-self: center; flex-shrink: 0;" title="Delete Property">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
+                <div style="display: flex; gap: 0.35rem; align-self: center; flex-shrink: 0;">
+                  <button class="btn-admin-edit" data-edit-prop="${p.id}" title="Edit Property Details">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="btn-admin-del" data-del-prop="${p.id}" title="Delete Property">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
               </div>
 
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px dashed var(--border-color);">
@@ -980,6 +988,16 @@ function attachAdminTabEvents(tab, root) {
           } else {
             showToast(`❌ Delete failed: ${res?.error || 'Unauthorized'}. Please re-login as Admin.`);
           }
+        }
+      });
+    });
+
+    root.querySelectorAll('[data-edit-prop]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const propId = btn.dataset.editProp;
+        const prop = state.allProperties.find(p => String(p.id) === String(propId));
+        if (prop) {
+          state.openModal('edit-property', prop);
         }
       });
     });

@@ -562,6 +562,37 @@ class AppState {
     return { success: true };
   }
 
+  async updateProperty(propertyId, updatedData) {
+    const idx = this.allProperties.findIndex(p => p.id === propertyId);
+    if (idx !== -1) {
+      const merged = { ...this.allProperties[idx], ...updatedData };
+      this.allProperties[idx] = merged;
+      if (this.activeProperty && this.activeProperty.id === propertyId) {
+        this.activeProperty = merged;
+      }
+      this.applyFilters();
+      this.saveProperties();
+      this.notify();
+
+      try {
+        const res = await api.updateProperty(propertyId, updatedData);
+        if (res && res.id) {
+          const finalMerged = { ...this.allProperties[idx], ...res };
+          this.allProperties[idx] = finalMerged;
+          if (this.activeProperty && this.activeProperty.id === propertyId) {
+            this.activeProperty = finalMerged;
+          }
+          this.saveProperties();
+          this.notify();
+        }
+      } catch (e) {
+        console.warn('DB update error:', e);
+      }
+      return { success: true };
+    }
+    return { success: false };
+  }
+
   async togglePropertyFlag(propertyId, flagName) {
     const prop = this.allProperties.find(p => p.id === propertyId);
     if (prop) {
