@@ -68,21 +68,13 @@ export function renderFooter() {
       <div>
         © ${new Date().getFullYear()} The Bangalore Properties. All rights reserved. Managed by <strong>V. RAMANA (Proprietor)</strong>.
       </div>
-      <div style="display: flex; align-items: center; gap: 1rem;">
-        <span style="color: #10b981; font-weight: 700; letter-spacing: 0.5px;">
-          <i class="fa-solid fa-key"></i> 100% VERIFIED RENTAL LISTINGS ONLY
-        </span>
-        <button id="footer-btn-admin-portal" style="background: none; border: none; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: color 0.2s;" title="Administrator Portal Login">
-          <i class="fa-solid fa-lock"></i> Admin Portal
-        </button>
+      <div style="color: #10b981; font-weight: 700; letter-spacing: 0.5px;">
+        <i class="fa-solid fa-key"></i> 100% VERIFIED RENTAL LISTINGS ONLY
       </div>
     </div>
   `;
 
   document.getElementById('footer-btn-contact-modal')?.addEventListener('click', () => {
     state.openModal('contact-us');
-  });
-  document.getElementById('footer-btn-admin-portal')?.addEventListener('click', () => {
-    state.openModal('admin-portal');
   });
 }

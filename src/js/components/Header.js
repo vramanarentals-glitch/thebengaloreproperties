@@ -44,13 +44,7 @@ export function renderHeader() {
               <span class="btn-text-full">Admin Dashboard</span>
               <span class="btn-text-mobile">Admin</span>
             </button>
-          ` : `
-            <button id="btn-header-admin-portal" class="nav-btn" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; font-weight: 700; font-size: 0.8rem; padding: 0.4rem 0.75rem; border-radius: 8px;" title="Proprietor Admin Access (/admin)">
-              <i class="fa-solid fa-lock"></i>
-              <span class="btn-text-full">Admin Portal</span>
-              <span class="btn-text-mobile">Admin</span>
-            </button>
-          `}
+          ` : ''}
 
           ${state.currentUser ? `
             <div style="display: flex; align-items: center; gap: 0.35rem;">
