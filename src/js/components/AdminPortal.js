@@ -65,23 +65,37 @@ function renderAdminLoginForm(root) {
             </div>
 
             <div class="input-field-group" style="text-align: left;">
-              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
-                Admin Password
-              </label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin: 0; display: block;">
+                  Admin Password
+                </label>
+                <button type="button" id="btn-toggle-admin-pass-top" style="background: none; border: none; color: var(--accent-emerald); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; padding: 0;">
+                  <i class="fa-solid fa-eye" id="icon-admin-pass-eye-top"></i> <span id="text-admin-pass-top">Show Password</span>
+                </button>
+              </div>
               <div style="position: relative;">
-                <i class="fa-solid fa-key" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                <i class="fa-solid fa-key" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 1;"></i>
                 <input 
                   type="password" 
                   id="admin-pass-input" 
-                  placeholder="Enter administrator password" 
+                  placeholder="Enter administrator password (ramana@123)" 
                   required 
                   autocomplete="current-password"
-                  style="width: 100%; padding: 0.85rem 2.8rem 0.85rem 2.5rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500;"
+                  style="width: 100%; padding: 0.85rem 6.5rem 0.85rem 2.5rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500; box-sizing: border-box;"
                 />
-                <button type="button" id="btn-toggle-admin-pass" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem;" title="Toggle password visibility">
-                  <i class="fa-solid fa-eye" id="icon-admin-pass-eye"></i>
+                <button 
+                  type="button" 
+                  id="btn-toggle-admin-pass" 
+                  style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; border-radius: 8px; padding: 0.35rem 0.65rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; z-index: 10; transition: all 0.2s ease;" 
+                  title="Toggle show/hide password"
+                >
+                  <i class="fa-solid fa-eye" id="icon-admin-pass-eye"></i> <span id="text-admin-pass-toggle">Show</span>
                 </button>
               </div>
+              <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.55rem; font-size: 0.82rem; color: var(--text-secondary); cursor: pointer; user-select: none;">
+                <input type="checkbox" id="check-show-admin-pass" style="accent-color: var(--accent-emerald); width: 17px; height: 17px; cursor: pointer; border-radius: 4px;" />
+                <span style="font-weight: 600;">Show password characters while typing</span>
+              </label>
             </div>
 
             <button type="submit" id="btn-submit-admin-login" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.95rem; font-size: 1rem; margin-top: 0.25rem; font-weight: 700; border-radius: 12px; gap: 0.5rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
@@ -101,18 +115,51 @@ function renderAdminLoginForm(root) {
 
   const passInput = document.getElementById('admin-pass-input');
   const togglePassBtn = document.getElementById('btn-toggle-admin-pass');
-  const eyeIcon = document.getElementById('icon-admin-pass-eye');
+  const togglePassBtnTop = document.getElementById('btn-toggle-admin-pass-top');
+  const passCheck = document.getElementById('check-show-admin-pass');
 
-  togglePassBtn?.addEventListener('click', () => {
-    if (passInput) {
-      if (passInput.type === 'password') {
-        passInput.type = 'text';
-        eyeIcon?.classList.replace('fa-eye', 'fa-eye-slash');
-      } else {
-        passInput.type = 'password';
-        eyeIcon?.classList.replace('fa-eye-slash', 'fa-eye');
-      }
+  function updatePasswordVisibility(show) {
+    if (!passInput) return;
+    passInput.type = show ? 'text' : 'password';
+
+    if (passCheck) passCheck.checked = show;
+
+    const eyeIcon = document.getElementById('icon-admin-pass-eye');
+    const toggleText = document.getElementById('text-admin-pass-toggle');
+    if (eyeIcon) {
+      eyeIcon.className = show ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
     }
+    if (toggleText) {
+      toggleText.textContent = show ? 'Hide' : 'Show';
+    }
+
+    const eyeIconTop = document.getElementById('icon-admin-pass-eye-top');
+    const topText = document.getElementById('text-admin-pass-top');
+    if (eyeIconTop) {
+      eyeIconTop.className = show ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+    }
+    if (topText) {
+      topText.textContent = show ? 'Hide Password' : 'Show Password';
+    }
+
+    // Keep focus in the input for seamless typing
+    passInput.focus();
+  }
+
+  togglePassBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const willShow = passInput?.type === 'password';
+    updatePasswordVisibility(willShow);
+  });
+
+  togglePassBtnTop?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const willShow = passInput?.type === 'password';
+    updatePasswordVisibility(willShow);
+  });
+
+  passCheck?.addEventListener('change', (e) => {
+    updatePasswordVisibility(e.target.checked);
   });
 
   document.getElementById('admin-login-form')?.addEventListener('submit', async (e) => {
