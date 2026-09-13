@@ -5,7 +5,7 @@ class AppState {
   constructor() {
     // Force purge old cached properties from localStorage for a clean, fresh start
     try {
-      const CACHE_VERSION = 'v5_fresh_start';
+      const CACHE_VERSION = 'v7_all_properties_removed';
       if (localStorage.getItem('tbp_sync_ver') !== CACHE_VERSION) {
         localStorage.removeItem('tbp_properties');
         localStorage.removeItem('tbp_deleted_ids');
@@ -130,28 +130,9 @@ class AppState {
         // Filter out any property explicitly deleted by admin
         const validDbProps = dbProps.filter(p => !deletedIds.includes(p.id));
 
-        // Map existing properties from DB
-        const mergedMap = new Map();
-        for (const p of validDbProps) {
-          mergedMap.set(p.id, p);
-        }
-
-        // CRITICAL: Preserve any property currently in allProperties that was not in DB
-        // (e.g. newly uploaded property that is still syncing or whose DB save was transiently delayed)
-        for (const localProp of this.allProperties) {
-          if (!deletedIds.includes(localProp.id)) {
-            if (!mergedMap.has(localProp.id)) {
-              // Property was added by user! NEVER let it vanish!
-              mergedMap.set(localProp.id, localProp);
-              // Ensure it is safely pushed to Neon DB
-              api.createProperty(localProp).catch(() => {});
-            }
-          }
-        }
-
-        const mergedList = Array.from(mergedMap.values());
-        if (JSON.stringify(mergedList) !== JSON.stringify(this.allProperties)) {
-          this.allProperties = mergedList;
+        if (JSON.stringify(validDbProps) !== JSON.stringify(this.allProperties)) {
+          this.allProperties = validDbProps;
+          this.applyFilters();
           this.saveProperties();
           hasChanged = true;
         }
@@ -515,6 +496,15 @@ class AppState {
   }
 
   // Admin Portal Methods
+  isAdmin() {
+    const savedAdminAuth = typeof window !== 'undefined' && localStorage.getItem('tbp_admin_auth') === 'true';
+    return Boolean(
+      this.isAdminLoggedIn || 
+      savedAdminAuth ||
+      (this.currentUser && (this.currentUser.isAdmin || this.currentUser.email === 'vramanarentals@gmail.com'))
+    );
+  }
+
   async adminLogin(email, password) {
     const res = await this.loginUser(email, password);
     return res && res.success && res.isAdmin;

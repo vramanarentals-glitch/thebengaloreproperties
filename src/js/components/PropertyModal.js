@@ -11,6 +11,12 @@ export function renderPropertyModal() {
   }
 
   const p = state.activeProperty;
+  const isAdmin = Boolean(
+    (typeof state.isAdmin === 'function' && state.isAdmin()) ||
+    state.isAdminLoggedIn ||
+    (state.currentUser && (state.currentUser.isAdmin || state.currentUser.email === 'vramanarentals@gmail.com')) ||
+    (typeof window !== 'undefined' && localStorage.getItem('tbp_admin_auth') === 'true')
+  );
 
   if (state.activeModal === 'property-details' && p) {
     root.innerHTML = `
@@ -39,9 +45,11 @@ export function renderPropertyModal() {
                 </div>
                 <div style="font-size: 0.72rem; color: var(--text-muted);">Dep: ₹${p.deposit.toLocaleString('en-IN')}</div>
               </div>
-              <button type="button" class="nav-btn details-edit-btn" id="btn-edit-details" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; font-weight: 700; padding: 0.55rem 0.95rem; font-size: 0.85rem; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; text-decoration: none;" title="Edit Property Details">
-                <i class="fa-solid fa-pen-to-square"></i> <span>Edit Property</span>
-              </button>
+              ${isAdmin ? `
+                <button type="button" class="nav-btn details-edit-btn" id="btn-edit-details" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; font-weight: 700; padding: 0.55rem 0.95rem; font-size: 0.85rem; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; text-decoration: none;" title="Edit Property Details (Admin Only)">
+                  <i class="fa-solid fa-pen-to-square"></i> <span>Edit Property</span>
+                </button>
+              ` : ''}
               <a href="tel:${p.ownerPhone}" class="nav-btn nav-btn-primary hide-mobile" style="padding: 0.55rem 1rem; font-size: 0.85rem; border-radius: 10px; text-decoration: none;">
                 <i class="fa-solid fa-phone"></i> Call Direct
               </a>
@@ -64,9 +72,11 @@ export function renderPropertyModal() {
                   <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; align-items: center;">
                     <span class="badge" style="background: #10b981; color: #fff; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-key"></i> FOR RENT</span>
                     ${p.isVerified ? `<span class="badge badge-verified">🛡️ Verified Property</span>` : ''}
-                    <button type="button" class="badge" id="btn-badge-edit-details" style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #10b981; font-weight: 800; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.65rem; border-radius: 6px;" title="Edit Property Details">
-                      <i class="fa-solid fa-pen-to-square"></i> Edit Listing
-                    </button>
+                    ${isAdmin ? `
+                      <button type="button" class="badge" id="btn-badge-edit-details" style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #10b981; font-weight: 800; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.65rem; border-radius: 6px;" title="Edit Property Details (Admin Only)">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Listing
+                      </button>
+                    ` : ''}
                   </div>
                   <h1 class="details-page-title font-heading">${p.title}</h1>
                   <div class="details-page-address">
@@ -412,6 +422,10 @@ export function renderPropertyModal() {
 
     const handleOpenEdit = (e) => {
       e?.preventDefault();
+      if (!isAdmin) {
+        showToast('🔒 Only administrators can edit properties.');
+        return;
+      }
       state.openModal('edit-property', p);
     };
 
@@ -768,6 +782,12 @@ export function renderPropertyModal() {
       window.open(`https://wa.me/${c.whatsapp.replace('+', '')}?text=${encodeURIComponent(waMsg)}`, '_blank');
     });
   } else if (state.activeModal === 'edit-property' && p) {
+    if (!isAdmin) {
+      state.openModal('property-details', p);
+      showToast('🔒 Access restricted: Only administrators can edit properties.');
+      return;
+    }
+
     let currentPhotos = Array.isArray(p.images) && p.images.length > 0 ? [...p.images] : [];
 
     root.innerHTML = `
