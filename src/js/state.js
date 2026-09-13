@@ -78,7 +78,7 @@ class AppState {
 
     // Admin Portal State
     const savedAdminAuth = localStorage.getItem('tbp_admin_auth') === 'true';
-    this.isAdminLoggedIn = Boolean(this.currentUser && this.currentUser.email !== 'vramanarentals@gmail.com' && (savedAdminAuth || this.currentUser?.isAdmin || this.currentUser?.email === 'ramuramana92@gmail.com'));
+    this.isAdminLoggedIn = Boolean(this.currentUser && (savedAdminAuth || this.currentUser?.isAdmin || this.currentUser?.email === 'vramanarentals@gmail.com'));
     this.adminTab = 'dashboard'; // 'dashboard' | 'properties' | 'add-property' | 'leads' | 'settings'
 
     // Tenant Leads / Inquiries
@@ -497,14 +497,11 @@ class AppState {
 
   // Admin Portal Methods
   isAdmin() {
-    if (this.currentUser && this.currentUser.email === 'vramanarentals@gmail.com') {
-      return false; // Explicitly revoked admin access for vramanarentals@gmail.com
-    }
     const savedAdminAuth = typeof window !== 'undefined' && localStorage.getItem('tbp_admin_auth') === 'true';
     return Boolean(
       this.isAdminLoggedIn || 
       savedAdminAuth ||
-      (this.currentUser && (this.currentUser.isAdmin || this.currentUser.email === 'ramuramana92@gmail.com'))
+      (this.currentUser && (this.currentUser.isAdmin || this.currentUser.email === 'vramanarentals@gmail.com'))
     );
   }
 

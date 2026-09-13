@@ -12,10 +12,8 @@ export function renderPropertyModal() {
 
   const p = state.activeProperty;
   const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : (
-    state.currentUser?.email !== 'vramanarentals@gmail.com' && (
-      state.isAdminLoggedIn ||
-      Boolean(state.currentUser && (state.currentUser.isAdmin || state.currentUser.email === 'ramuramana92@gmail.com'))
-    )
+    state.isAdminLoggedIn ||
+    Boolean(state.currentUser && (state.currentUser.isAdmin || state.currentUser.email === 'vramanarentals@gmail.com'))
   );
 
   if (state.activeModal === 'property-details' && p) {

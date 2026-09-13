@@ -6,7 +6,7 @@ export function renderHeader() {
 
   const favCount = state.favorites.length;
   const isDark = state.theme === 'dark';
-  const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : Boolean(state.currentUser && state.currentUser.email !== 'vramanarentals@gmail.com' && (state.isAdminLoggedIn || state.currentUser.isAdmin || state.currentUser.email === 'ramuramana92@gmail.com'));
+  const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : Boolean(state.currentUser && (state.isAdminLoggedIn || state.currentUser.isAdmin || state.currentUser.email === 'vramanarentals@gmail.com'));
 
   root.innerHTML = `
     <header class="header-nav">

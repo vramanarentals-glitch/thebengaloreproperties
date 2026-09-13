@@ -12,10 +12,8 @@ export function renderAdminPortal() {
 
   // Check if Admin is logged in
   const isAdmin = typeof state.isAdmin === 'function' ? state.isAdmin() : (
-    state.currentUser?.email !== 'vramanarentals@gmail.com' && (
-      state.isAdminLoggedIn ||
-      Boolean(state.currentUser && (state.currentUser.isAdmin || state.currentUser.email === 'ramuramana92@gmail.com'))
-    )
+    state.isAdminLoggedIn ||
+    Boolean(state.currentUser && (state.currentUser.isAdmin || state.currentUser.email === 'vramanarentals@gmail.com'))
   );
   if (!isAdmin) {
     renderAdminLoginForm(root);

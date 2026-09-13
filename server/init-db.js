@@ -132,7 +132,7 @@ export async function initializeDatabase() {
   // Leads are preserved permanently - only deleted when admin explicitly requests deletion.
 
   // Create / sync default admin user from .env credentials
-  const adminEmail = (process.env.ADMIN_EMAIL || 'ramuramana92@gmail.com').trim().toLowerCase();
+  const adminEmail = (process.env.ADMIN_EMAIL || 'vramanarentals@gmail.com').trim().toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD || 'ramana@123';
   const hashedAdminPassword = await bcrypt.hash(adminPassword, 10);
 
