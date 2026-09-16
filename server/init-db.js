@@ -131,27 +131,28 @@ export async function initializeDatabase() {
 
   // Leads are preserved permanently - only deleted when admin explicitly requests deletion.
 
-  // Create / sync default admin user from .env credentials
-  const adminEmail = (process.env.ADMIN_EMAIL || 'vramanarentals@gmail.com').trim().toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD || 'ramana@123';
-  const hashedAdminPassword = await bcrypt.hash(adminPassword, 10);
-
-  const adminRes = await pool.query("SELECT * FROM users WHERE email = $1", [adminEmail]);
-  if (adminRes.rows.length === 0) {
-    await pool.query(`
-      INSERT INTO users (id, name, email, password, provider, avatar, is_admin)
-      VALUES (
-        'usr-admin',
-        'V. RAMANA (Proprietor)',
-        $1,
-        $2,
-        'Admin Account',
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=VRamana',
-        TRUE
-      ) ON CONFLICT (email) DO UPDATE SET password = $2, is_admin = TRUE;
-    `, [adminEmail, hashedAdminPassword]);
-  } else {
-    await pool.query("UPDATE users SET password = $1, is_admin = TRUE WHERE email = $2;", [hashedAdminPassword, adminEmail]);
+  // Create / sync admin user strictly from environment variables
+  const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (adminEmail && adminPassword) {
+    const hashedAdminPassword = await bcrypt.hash(adminPassword, 10);
+    const adminRes = await pool.query("SELECT * FROM users WHERE email = $1", [adminEmail]);
+    if (adminRes.rows.length === 0) {
+      await pool.query(`
+        INSERT INTO users (id, name, email, password, provider, avatar, is_admin)
+        VALUES (
+          'usr-admin',
+          'V. RAMANA (Proprietor)',
+          $1,
+          $2,
+          'Admin Account',
+          'https://api.dicebear.com/7.x/avataaars/svg?seed=VRamana',
+          TRUE
+        ) ON CONFLICT (email) DO UPDATE SET password = $2, is_admin = TRUE;
+      `, [adminEmail, hashedAdminPassword]);
+    } else {
+      await pool.query("UPDATE users SET password = $1, is_admin = TRUE WHERE email = $2;", [hashedAdminPassword, adminEmail]);
+    }
   }
 
   console.log('Neon Database initialization complete!');

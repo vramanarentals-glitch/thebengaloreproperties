@@ -1,5 +1,6 @@
 import { state } from '../state.js';
 import { showToast } from './Toast.js';
+import { sanitizeHTML, escapeAttr, sanitizeUrl, sanitizePhone } from '../utils/security.js';
 
 export function renderPropertyModal() {
   const root = document.getElementById('modal-root');
@@ -27,28 +28,28 @@ export function renderPropertyModal() {
               <div class="details-breadcrumb hide-mobile">
                 <span>Bengaluru</span>
                 <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem; color: var(--text-muted);"></i>
-                <span>${p.locality}</span>
+                <span>${sanitizeHTML(p.locality)}</span>
                 <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem; color: var(--text-muted);"></i>
-                <span style="font-weight: 700; color: var(--text-primary);">${p.title}</span>
+                <span style="font-weight: 700; color: var(--text-primary);">${sanitizeHTML(p.title)}</span>
               </div>
             </div>
 
             <div class="details-fullscreen-topbar-right">
               <div class="hide-mobile" style="text-align: right; margin-right: 0.5rem;">
                 <div style="font-size: 1.25rem; font-weight: 800; color: var(--accent-emerald); line-height: 1;">
-                  ₹${p.price.toLocaleString('en-IN')}<span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">/mo</span>
+                  ₹${Number(p.price || 0).toLocaleString('en-IN')}<span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">/mo</span>
                 </div>
-                <div style="font-size: 0.72rem; color: var(--text-muted);">Dep: ₹${p.deposit.toLocaleString('en-IN')}</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Dep: ₹${Number(p.deposit || 0).toLocaleString('en-IN')}</div>
               </div>
               ${isAdmin ? `
                 <button type="button" class="nav-btn details-edit-btn" id="btn-edit-details" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; font-weight: 700; padding: 0.55rem 0.95rem; font-size: 0.85rem; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; text-decoration: none;" title="Edit Property Details (Admin Only)">
                   <i class="fa-solid fa-pen-to-square"></i> <span>Edit Property</span>
                 </button>
               ` : ''}
-              <a href="tel:${p.ownerPhone}" class="nav-btn nav-btn-primary hide-mobile" style="padding: 0.55rem 1rem; font-size: 0.85rem; border-radius: 10px; text-decoration: none;">
+              <a href="tel:${encodeURIComponent(sanitizePhone(p.ownerPhone))}" class="nav-btn nav-btn-primary hide-mobile" style="padding: 0.55rem 1rem; font-size: 0.85rem; border-radius: 10px; text-decoration: none;">
                 <i class="fa-solid fa-phone"></i> Call Direct
               </a>
-              <a href="https://wa.me/918050407710?text=${encodeURIComponent(`Hello V. Ramana, I am inquiring about "${p.title}" in ${p.locality} listed for ₹${p.price.toLocaleString('en-IN')}/mo on The Bangalore Properties.`)}" target="_blank" class="nav-btn hide-mobile" style="background: #25D366; color: #fff; border: none; padding: 0.55rem 1rem; font-size: 0.85rem; border-radius: 10px; text-decoration: none;">
+              <a href="https://wa.me/918050407710?text=${encodeURIComponent(`Hello V. Ramana, I am inquiring about "${p.title || ''}" in ${p.locality || ''} listed for ₹${Number(p.price || 0).toLocaleString('en-IN')}/mo on The Bangalore Properties.`)}" target="_blank" class="nav-btn hide-mobile" style="background: #25D366; color: #fff; border: none; padding: 0.55rem 1rem; font-size: 0.85rem; border-radius: 10px; text-decoration: none;">
                 <i class="fa-brands fa-whatsapp"></i> WhatsApp
               </a>
               <button class="modal-close-btn" id="btn-close-modal" style="position: static !important; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;" title="Close Details">
@@ -73,18 +74,18 @@ export function renderPropertyModal() {
                       </button>
                     ` : ''}
                   </div>
-                  <h1 class="details-page-title font-heading">${p.title}</h1>
+                  <h1 class="details-page-title font-heading">${sanitizeHTML(p.title)}</h1>
                   <div class="details-page-address">
-                    <i class="fa-solid fa-location-dot" style="color: var(--accent-emerald);"></i> ${p.address}
+                    <i class="fa-solid fa-location-dot" style="color: var(--accent-emerald);"></i> ${sanitizeHTML(p.address)}
                   </div>
                 </div>
 
                 <div class="details-header-price-card">
                   <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-emerald); line-height: 1.1;">
-                    ₹${p.price.toLocaleString('en-IN')} <span style="font-size: 1.05rem; color: var(--text-secondary); font-weight: 500;">/month</span>
+                    ₹${Number(p.price || 0).toLocaleString('en-IN')} <span style="font-size: 1.05rem; color: var(--text-secondary); font-weight: 500;">/month</span>
                   </div>
                   <div style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 4px;">
-                    Security Deposit: <strong style="color: var(--text-primary);">₹${p.deposit.toLocaleString('en-IN')}</strong>
+                    Security Deposit: <strong style="color: var(--text-primary);">₹${Number(p.deposit || 0).toLocaleString('en-IN')}</strong>
                   </div>
                 </div>
               </div>
@@ -92,15 +93,15 @@ export function renderPropertyModal() {
               <!-- Main Photo Gallery Slider (Sideways Swipeable, No Arrows) -->
               <div class="gallery-slider-wrapper details-fullscreen-gallery">
                 <div class="gallery-slider-track" id="property-gallery-slider">
-                  ${p.images.map((img, idx) => `
+                  ${(p.images || []).map((img, idx) => `
                     <div class="gallery-slide-item" data-slide-index="${idx}">
-                      <div class="gallery-ambient-bg" style="background-image: url('${img}');" aria-hidden="true"></div>
-                      <img class="gallery-main-img" src="${img}" alt="${p.title} - Photo ${idx + 1}" loading="${idx === 0 ? 'eager' : 'lazy'}" />
+                      <div class="gallery-ambient-bg" style="background-image: url('${sanitizeUrl(img)}');" aria-hidden="true"></div>
+                      <img class="gallery-main-img" src="${sanitizeUrl(img)}" alt="${escapeAttr(p.title)} - Photo ${idx + 1}" loading="${idx === 0 ? 'eager' : 'lazy'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80';" />
                     </div>
                   `).join('')}
                 </div>
 
-                ${p.images.length > 1 ? `
+                ${(p.images || []).length > 1 ? `
                   <div class="gallery-counter-pill" id="gallery-counter-pill">
                     <span id="gallery-active-index">1</span> / ${p.images.length}
                   </div>
@@ -108,7 +109,7 @@ export function renderPropertyModal() {
               </div>
 
               <!-- Horizontally Scrollable Thumbnails Strip -->
-              ${p.images.length > 1 ? `
+              ${(p.images || []).length > 1 ? `
                 <div class="gallery-thumbs-carousel" id="gallery-thumbs-carousel" style="margin-bottom: 2rem;">
                   ${p.images.map((img, idx) => `
                     <button 
@@ -117,7 +118,7 @@ export function renderPropertyModal() {
                       data-thumb-index="${idx}"
                       aria-label="View Photo ${idx + 1}"
                     >
-                      <img src="${img}" alt="Thumbnail ${idx + 1}" loading="lazy" />
+                      <img src="${sanitizeUrl(img)}" alt="Thumbnail ${idx + 1}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80';" />
                     </button>
                   `).join('')}
                 </div>
@@ -135,56 +136,56 @@ export function renderPropertyModal() {
                       <div class="details-spec-icon"><i class="fa-solid fa-bed"></i></div>
                       <div class="details-spec-content">
                         <div class="details-spec-label">BHK TYPE</div>
-                        <div class="details-spec-val">${p.bhk}</div>
+                        <div class="details-spec-val">${sanitizeHTML(p.bhk)}</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-ruler-combined"></i></div>
                       <div class="details-spec-content">
                         <div class="details-spec-label">SUPER AREA</div>
-                        <div class="details-spec-val">${p.sqft} sq ft</div>
+                        <div class="details-spec-val">${sanitizeHTML(p.sqft)} sq ft</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-couch"></i></div>
                       <div class="details-spec-content">
                         <div class="details-spec-label">FURNISHING</div>
-                        <div class="details-spec-val">${p.furnishing}</div>
+                        <div class="details-spec-val">${sanitizeHTML(p.furnishing)}</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-stairs"></i></div>
                       <div class="details-spec-content">
                         <div class="details-spec-label">FLOOR LEVEL</div>
-                        <div class="details-spec-val">${p.floor}</div>
+                        <div class="details-spec-val">${sanitizeHTML(p.floor)}</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-compass"></i></div>
                       <div class="details-spec-content">
                         <div class="details-spec-label">FACING</div>
-                        <div class="details-spec-val">${p.facing}</div>
+                        <div class="details-spec-val">${sanitizeHTML(p.facing)}</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-bath"></i></div>
                       <div class="details-spec-content">
                         <div class="details-spec-label">BATHROOMS</div>
-                        <div class="details-spec-val">${p.bathrooms || 2} Baths</div>
+                        <div class="details-spec-val">${sanitizeHTML(p.bathrooms || 2)} Baths</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-clock"></i></div>
                       <div class="details-spec-content">
                         <div class="details-spec-label">AVAILABLE FROM</div>
-                        <div class="details-spec-val">${p.availableFrom || 'Immediate'}</div>
+                        <div class="details-spec-val">${sanitizeHTML(p.availableFrom || 'Immediate')}</div>
                       </div>
                     </div>
                     <div class="details-spec-box">
                       <div class="details-spec-icon"><i class="fa-solid fa-users"></i></div>
                       <div class="details-spec-content">
                         <div class="details-spec-label">PREFERRED TENANTS</div>
-                        <div class="details-spec-val">${p.preferredTenants || 'Any'}</div>
+                        <div class="details-spec-val">${sanitizeHTML(p.preferredTenants || 'Any')}</div>
                       </div>
                     </div>
                   </div>
@@ -194,7 +195,7 @@ export function renderPropertyModal() {
                     <h3 class="details-section-heading">
                       <i class="fa-solid fa-circle-info" style="color: var(--accent-emerald);"></i> Property Overview & Description
                     </h3>
-                    <p class="details-desc-text">${p.description}</p>
+                    <p class="details-desc-text">${sanitizeHTML(p.description)}</p>
                   </div>
 
                   <!-- Society & Unit Amenities Card -->
@@ -203,9 +204,9 @@ export function renderPropertyModal() {
                       <i class="fa-solid fa-list-check" style="color: var(--accent-emerald);"></i> Society & Unit Amenities
                     </h3>
                     <div class="amenities-tag-grid">
-                      ${p.amenities.map(a => `
+                      ${(p.amenities || []).map(a => `
                         <span class="amenity-chip">
-                          <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> ${a}
+                          <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> ${sanitizeHTML(a)}
                         </span>
                       `).join('')}
                     </div>
@@ -229,11 +230,11 @@ export function renderPropertyModal() {
 
                     <!-- Direct Actions Stack -->
                     <div class="details-contact-actions">
-                      <a href="tel:${p.ownerPhone}" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem 1rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; gap: 0.5rem; text-decoration: none;">
-                        <i class="fa-solid fa-phone"></i> Call Directly (${p.ownerPhone})
+                      <a href="tel:${encodeURIComponent(sanitizePhone(p.ownerPhone))}" class="nav-btn nav-btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem 1rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; gap: 0.5rem; text-decoration: none;">
+                        <i class="fa-solid fa-phone"></i> Call Directly (${sanitizeHTML(p.ownerPhone)})
                       </a>
 
-                      <a href="https://wa.me/918050407710?text=${encodeURIComponent(`Hello V. Ramana, I am inquiring about "${p.title}" in ${p.locality} listed for ₹${p.price.toLocaleString('en-IN')}/mo on The Bangalore Properties.`)}" target="_blank" class="nav-btn" style="width: 100%; justify-content: center; background: #25D366; color: #fff; font-weight: 800; padding: 0.85rem 1rem; font-size: 0.95rem; border-radius: 12px; border: none; text-decoration: none; gap: 0.5rem;">
+                      <a href="https://wa.me/918050407710?text=${encodeURIComponent(`Hello V. Ramana, I am inquiring about "${p.title || ''}" in ${p.locality || ''} listed for ₹${Number(p.price || 0).toLocaleString('en-IN')}/mo on The Bangalore Properties.`)}" target="_blank" class="nav-btn" style="width: 100%; justify-content: center; background: #25D366; color: #fff; font-weight: 800; padding: 0.85rem 1rem; font-size: 0.95rem; border-radius: 12px; border: none; text-decoration: none; gap: 0.5rem;">
                         <i class="fa-brands fa-whatsapp" style="font-size: 1.15rem;"></i> Chat on WhatsApp
                       </a>
 
@@ -444,7 +445,7 @@ export function renderPropertyModal() {
               </div>
               <div>
                 <h3 class="font-heading" style="font-size: 1.4rem;">Schedule Property Tour</h3>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">${p.title}</p>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">${sanitizeHTML(p.title)}</p>
               </div>
             </div>
 
@@ -548,9 +549,9 @@ export function renderPropertyModal() {
 
               <!-- Top Right Highlight -->
               <div style="background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; padding: 0.65rem 1rem; border-radius: 12px; text-align: left; flex: 1; min-width: 170px;">
-                <div style="font-size: 1.15rem; font-weight: 900; color: #ffffff; font-family: 'Outfit', sans-serif;">${c.proprietor}</div>
+                <div style="font-size: 1.15rem; font-weight: 900; color: #ffffff; font-family: 'Outfit', sans-serif;">${sanitizeHTML(c.proprietor)}</div>
                 <div style="font-size: 0.9rem; font-weight: 700; color: #f59e0b; white-space: nowrap;">
-                  <i class="fa-solid fa-phone"></i> ${c.phone}
+                  <i class="fa-solid fa-phone"></i> ${sanitizeHTML(c.phone)}
                 </div>
               </div>
             </div>
@@ -558,10 +559,10 @@ export function renderPropertyModal() {
             <!-- Card Bottom Banner with Slogan (Matching Business Card Image) -->
             <div style="background: linear-gradient(90deg, #0f172a, #1e1b4b); padding: 0.85rem 1.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
               <div style="font-size: 0.78rem; color: #cbd5e1;">
-                <span style="color: #f59e0b; font-weight: 700;">PROPRIETOR:</span> ${c.proprietor}
+                <span style="color: #f59e0b; font-weight: 700;">PROPRIETOR:</span> ${sanitizeHTML(c.proprietor)}
               </div>
               <div style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 900; color: #fbbf24; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(245,158,11,0.5);">
-                YOUR PROPERTY, OUR PRIORITY.
+                ${sanitizeHTML(c.slogan || 'YOUR PROPERTY, OUR PRIORITY.')}
               </div>
             </div>
           </div>
@@ -576,7 +577,7 @@ export function renderPropertyModal() {
                 </div>
                 <div style="flex: 1; min-width: 0;">
                   <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">CONTACT PERSON</div>
-                  <div style="font-size: 1rem; font-weight: 800; color: #f8fafc;">${c.proprietor} (${c.role})</div>
+                  <div style="font-size: 1rem; font-weight: 800; color: #f8fafc;">${sanitizeHTML(c.proprietor)} (${sanitizeHTML(c.role)})</div>
                 </div>
               </div>
 
@@ -586,9 +587,9 @@ export function renderPropertyModal() {
                 </div>
                 <div style="flex: 1; min-width: 140px;">
                   <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">WHATSAPP & PHONE</div>
-                  <div style="font-size: 1.05rem; font-weight: 800; color: #f8fafc; white-space: nowrap;">${c.phone}</div>
+                  <div style="font-size: 1.05rem; font-weight: 800; color: #f8fafc; white-space: nowrap;">${sanitizeHTML(c.phone)}</div>
                 </div>
-                <a href="https://wa.me/${c.whatsapp.replace('+', '')}?text=Hello%20V.%20Ramana,%20I%20want%20to%20inquire%20about%20properties%20in%20Bangalore." target="_blank" class="nav-btn" style="background: #25D366; color: #fff; border: none; font-weight: 800; padding: 0.5rem 0.85rem; font-size: 0.82rem; border-radius: 10px; flex-shrink: 0; white-space: nowrap;">
+                <a href="https://wa.me/${encodeURIComponent(sanitizePhone(c.whatsapp))}?text=Hello%20V.%20Ramana,%20I%20want%20to%20inquire%20about%20properties%20in%20Bangalore." target="_blank" class="nav-btn" style="background: #25D366; color: #fff; border: none; font-weight: 800; padding: 0.5rem 0.85rem; font-size: 0.82rem; border-radius: 10px; flex-shrink: 0; white-space: nowrap;">
                   <i class="fa-brands fa-whatsapp"></i> WhatsApp
                 </a>
               </div>
@@ -800,7 +801,7 @@ export function renderPropertyModal() {
                   <i class="fa-solid fa-pen-to-square" style="color: var(--accent-emerald);"></i> Edit Property Details
                 </h3>
                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
-                  Editing: <strong style="color: var(--text-primary);">${p.title}</strong> (${p.locality})
+                  Editing: <strong style="color: var(--text-primary);">${sanitizeHTML(p.title)}</strong> (${sanitizeHTML(p.locality)})
                 </div>
               </div>
             </div>
@@ -817,11 +818,11 @@ export function renderPropertyModal() {
               <div class="modal-grid-2col">
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Property Title *</label>
-                  <input type="text" id="edit-p-title" value="${p.title ? p.title.replace(/"/g, '&quot;') : ''}" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <input type="text" id="edit-p-title" value="${escapeAttr(p.title || '')}" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
                 </div>
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Locality / Area *</label>
-                  <input type="text" id="edit-p-locality" value="${p.locality ? p.locality.replace(/"/g, '&quot;') : ''}" list="edit-localities-datalist" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <input type="text" id="edit-p-locality" value="${escapeAttr(p.locality || '')}" list="edit-localities-datalist" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
                   <datalist id="edit-localities-datalist">
                     <option value="Murugeshpalaya"></option>
                     <option value="Indiranagar"></option>
@@ -846,18 +847,18 @@ export function renderPropertyModal() {
               <!-- Address -->
               <div class="input-field-group">
                 <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Full Address *</label>
-                <input type="text" id="edit-p-address" value="${p.address ? p.address.replace(/"/g, '&quot;') : ''}" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                <input type="text" id="edit-p-address" value="${escapeAttr(p.address || '')}" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
               </div>
 
               <!-- Rent, Deposit, BHK, Super Area -->
               <div class="modal-grid-2col">
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Monthly Rent (₹) *</label>
-                  <input type="number" id="edit-p-price" value="${p.price}" min="1000" step="500" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <input type="number" id="edit-p-price" value="${Number(p.price || 0)}" min="1000" step="500" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
                 </div>
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Security Deposit (₹) *</label>
-                  <input type="number" id="edit-p-deposit" value="${p.deposit}" min="1000" step="1000" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <input type="number" id="edit-p-deposit" value="${Number(p.deposit || 0)}" min="1000" step="1000" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
                 </div>
               </div>
 
@@ -873,7 +874,7 @@ export function renderPropertyModal() {
                 </div>
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Super Area (sq ft) *</label>
-                  <input type="number" id="edit-p-sqft" value="${p.sqft}" min="50" step="10" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <input type="number" id="edit-p-sqft" value="${Number(p.sqft || 0)}" min="50" step="10" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
                 </div>
               </div>
 
@@ -889,7 +890,7 @@ export function renderPropertyModal() {
                 </div>
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Floor Level *</label>
-                  <input type="text" id="edit-p-floor" value="${p.floor ? p.floor.replace(/"/g, '&quot;') : 'Ground Floor'}" list="edit-floor-datalist" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <input type="text" id="edit-p-floor" value="${escapeAttr(p.floor || 'Ground Floor')}" list="edit-floor-datalist" required style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
                   <datalist id="edit-floor-datalist">
                     <option value="Ground Floor"></option>
                     <option value="1st Floor"></option>
@@ -931,7 +932,7 @@ export function renderPropertyModal() {
               <div class="modal-grid-2col">
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Available From</label>
-                  <input type="text" id="edit-p-available" value="${p.availableFrom ? p.availableFrom.replace(/"/g, '&quot;') : 'Immediate'}" placeholder="e.g. Immediate, 1st of Next Month" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <input type="text" id="edit-p-available" value="${escapeAttr(p.availableFrom || 'Immediate')}" placeholder="e.g. Immediate, 1st of Next Month" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
                 </div>
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Preferred Tenants</label>
@@ -965,9 +966,9 @@ export function renderPropertyModal() {
                     const isChecked = (p.amenities || []).some(a => a.toLowerCase().includes(am.id.toLowerCase()));
                     return `
                       <label style="display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.85rem; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); cursor: pointer; font-size: 0.84rem; font-weight: 600;">
-                        <input type="checkbox" name="edit-amenity" value="${am.name}" ${isChecked ? 'checked' : ''} style="accent-color: var(--accent-emerald); width: 16px; height: 16px;" />
+                        <input type="checkbox" name="edit-amenity" value="${escapeAttr(am.name)}" ${isChecked ? 'checked' : ''} style="accent-color: var(--accent-emerald); width: 16px; height: 16px;" />
                         <i class="fa-solid ${am.icon}" style="color: var(--accent-emerald); width: 16px; text-align: center;"></i>
-                        <span>${am.name}</span>
+                        <span>${sanitizeHTML(am.name)}</span>
                       </label>
                     `;
                   }).join('')}
@@ -994,18 +995,18 @@ export function renderPropertyModal() {
               <!-- Description -->
               <div class="input-field-group">
                 <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Property Description</label>
-                <textarea id="edit-p-desc" rows="3" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;">${p.description || ''}</textarea>
+                <textarea id="edit-p-desc" rows="3" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;">${sanitizeHTML(p.description || '')}</textarea>
               </div>
 
               <!-- Owner Name & Phone -->
               <div class="modal-grid-2col">
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Owner / Contact Name</label>
-                  <input type="text" id="edit-p-owner-name" value="${p.ownerName ? p.ownerName.replace(/"/g, '&quot;') : 'V. RAMANA'}" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <input type="text" id="edit-p-owner-name" value="${escapeAttr(p.ownerName || 'V. RAMANA')}" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
                 </div>
                 <div class="input-field-group">
                   <label style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Owner Contact Phone</label>
-                  <input type="tel" id="edit-p-owner-phone" value="${p.ownerPhone ? p.ownerPhone.replace(/"/g, '&quot;') : '+91 80504 07710'}" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
+                  <input type="tel" id="edit-p-owner-phone" value="${escapeAttr(p.ownerPhone || '+91 80504 07710')}" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.92rem; box-sizing: border-box;" />
                 </div>
               </div>
 
@@ -1046,7 +1047,7 @@ export function renderPropertyModal() {
       }
       photosPreview.innerHTML = currentPhotos.map((src, idx) => `
         <div style="position: relative; width: 88px; height: 88px; border-radius: 12px; overflow: hidden; border: 2px solid rgba(16, 185, 129, 0.4); flex-shrink: 0;">
-          <img src="${src}" style="width: 100%; height: 100%; object-fit: cover;" />
+          <img src="${sanitizeUrl(src)}" style="width: 100%; height: 100%; object-fit: cover;" />
           <button type="button" class="btn-remove-edit-img" data-img-idx="${idx}" style="position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: #ef4444; color: #fff; border: 1.5px solid #fff; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.5); z-index: 10;" title="Delete Photo">
             <i class="fa-solid fa-xmark"></i>
           </button>

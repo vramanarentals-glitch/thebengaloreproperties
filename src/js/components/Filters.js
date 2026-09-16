@@ -1,5 +1,6 @@
 import { LOCALITIES } from '../../data/properties.js';
 import { state } from '../state.js';
+import { escapeAttr } from '../utils/security.js';
 
 export function renderFilters() {
   const root = document.getElementById('filters-root');
@@ -25,7 +26,7 @@ export function renderFilters() {
           type="text" 
           id="filter-search-input" 
           placeholder="e.g. Indiranagar, Murugeshpalaya, Penthouse..." 
-          value="${f.searchQuery}"
+          value="${escapeAttr(f.searchQuery || '')}"
           class="input-field-group"
           style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);"
         />

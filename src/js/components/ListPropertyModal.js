@@ -3,6 +3,7 @@ import { state } from '../state.js';
 import { api } from '../api.js';
 import { showToast } from './Toast.js';
 import { compressImage, processAndCompressImages } from '../utils/imageCompressor.js';
+import { sanitizeHTML, escapeAttr, sanitizeUrl } from '../utils/security.js';
 
 export function renderListPropertyModal() {
   if (state.activeModal !== 'list-property') return;
@@ -251,7 +252,7 @@ export function renderListPropertyModal() {
       const sizeKb = imgItem.compressedSize ? `${Math.round(imgItem.compressedSize / 1024)} KB` : '';
       return `
         <div style="position: relative; display: inline-block; margin: 4px;">
-          <img src="${src}" style="width: 76px; height: 76px; border-radius: 10px; object-fit: cover; border: 2px solid var(--accent-indigo); display: block;" />
+          <img src="${sanitizeUrl(src)}" style="width: 76px; height: 76px; border-radius: 10px; object-fit: cover; border: 2px solid var(--accent-indigo); display: block;" />
           ${sizeKb ? `<span style="position: absolute; bottom: 3px; left: 3px; background: rgba(0,0,0,0.75); color: #fff; font-size: 0.65rem; padding: 1px 4px; border-radius: 4px; font-weight: 700;">${sizeKb}</span>` : ''}
           <button type="button" class="btn-remove-lp-img" data-img-idx="${idx}" style="position: absolute; top: -8px; right: -8px; width: 28px; height: 28px; border-radius: 50%; background: #ef4444; color: #fff; border: 2px solid #fff; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.4); z-index: 10; touch-action: manipulation;" title="Remove">
             <i class="fa-solid fa-xmark"></i>

@@ -1,4 +1,5 @@
 import { state } from '../state.js';
+import { sanitizeHTML, sanitizePhone } from '../utils/security.js';
 
 export function renderFooter() {
   const root = document.getElementById('footer-root');
@@ -16,7 +17,7 @@ export function renderFooter() {
           <div>The Bangalore <span class="brand-text-highlight">Properties</span></div>
         </div>
         <p style="color: #f59e0b; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
-          "${c.slogan}"
+          "${sanitizeHTML(c.slogan)}"
         </p>
         <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">
           Bengaluru's premier property platform directly managed by Proprietor V. RAMANA. Verified rental homes, office spaces, godowns & leases across Silicon Valley of India.
@@ -49,15 +50,15 @@ export function renderFooter() {
         <h4 class="font-heading" style="color: var(--text-primary); margin-bottom: 1rem;">Direct Contact (Proprietor)</h4>
         <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem;">
           <div style="font-weight: 800; color: var(--text-primary); font-size: 0.95rem; margin-bottom: 0.25rem;">
-            👤 ${c.proprietor} <span style="font-size: 0.75rem; color: #f59e0b; font-weight: 600;">(${c.role})</span>
+            👤 ${sanitizeHTML(c.proprietor)} <span style="font-size: 0.75rem; color: #f59e0b; font-weight: 600;">(${sanitizeHTML(c.role)})</span>
           </div>
-          <div>📍 ${c.address}</div>
-          <div>📧 <a href="mailto:${c.email}" style="color: var(--accent-emerald); hover: underline;">${c.email}</a></div>
-          <div>📞 <a href="tel:${c.phoneRaw}" style="color: #f59e0b; font-weight: 700;">${c.phone}</a></div>
+          <div>📍 ${sanitizeHTML(c.address)}</div>
+          <div>📧 <a href="mailto:${c.email}" style="color: var(--accent-emerald); hover: underline;">${sanitizeHTML(c.email)}</a></div>
+          <div>📞 <a href="tel:${encodeURIComponent(sanitizePhone(c.phoneRaw))}" style="color: #f59e0b; font-weight: 700;">${sanitizeHTML(c.phone)}</a></div>
         </div>
         <div style="display: flex; gap: 0.75rem; font-size: 1.2rem;">
-          <a href="https://wa.me/${c.whatsapp.replace('+', '')}" target="_blank" style="color: #25D366;" title="WhatsApp Direct"><i class="fa-brands fa-whatsapp"></i></a>
-          <a href="tel:${c.phoneRaw}" style="color: var(--accent-emerald);" title="Call Direct"><i class="fa-solid fa-phone"></i></a>
+          <a href="https://wa.me/${encodeURIComponent(sanitizePhone(c.whatsapp))}" target="_blank" style="color: #25D366;" title="WhatsApp Direct"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="tel:${encodeURIComponent(sanitizePhone(c.phoneRaw))}" style="color: var(--accent-emerald);" title="Call Direct"><i class="fa-solid fa-phone"></i></a>
           <a href="mailto:${c.email}" style="color: var(--accent-amber);" title="Email Direct"><i class="fa-solid fa-envelope"></i></a>
           <button id="footer-btn-contact-modal" style="color: var(--accent-indigo); cursor: pointer; border: none; background: none; font-size: 1.2rem;" title="View Digital Business Card"><i class="fa-solid fa-id-card"></i></button>
         </div>

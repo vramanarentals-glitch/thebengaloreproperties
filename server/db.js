@@ -5,7 +5,10 @@ dotenv.config();
 
 const { Pool } = pg;
 
-const rawConnectionString = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_x2EBuTd0tjhS@ep-floral-scene-avevp6xe-pooler.c-11.us-east-1.aws.neon.tech/neondb?sslmode=require';
+const rawConnectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL_UNPOOLED || '';
+if (!rawConnectionString) {
+  console.error('FATAL SECURITY CONFIGURATION: DATABASE_URL environment variable is not defined.');
+}
 // Ensure channel_binding=require is stripped if present to avoid SCRAM issues on Windows
 const connectionString = rawConnectionString.replace(/&channel_binding=require/g, '').replace(/\?channel_binding=require&/g, '?');
 

@@ -1,4 +1,5 @@
 import { state } from '../state.js';
+import { sanitizeHTML, escapeAttr, sanitizeUrl } from '../utils/security.js';
 
 export function renderPropertyGrid() {
   const quickBarRoot = document.getElementById('quick-bar-root');
@@ -97,9 +98,9 @@ export function renderPropertyGrid() {
   // Render Grid Cards
   gridRoot.innerHTML = state.filteredProperties.map(p => {
     return `
-      <article class="property-card" data-id="${p.id}">
+      <article class="property-card" data-id="${escapeAttr(p.id)}">
         <div class="card-image-wrapper">
-          <img class="card-image" src="${p.images[0]}" alt="${p.title}" loading="lazy" />
+          <img class="card-image" src="${sanitizeUrl(p.images && p.images[0])}" alt="${escapeAttr(p.title)}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80';" />
           
           <div class="card-badges">
             <span class="badge" style="background: #10b981; color: #ffffff; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-key"></i> FOR RENT</span>
@@ -110,42 +111,42 @@ export function renderPropertyGrid() {
         <div class="card-content">
           <div class="card-price-row">
             <div class="card-price">
-              ₹${p.price.toLocaleString('en-IN')} <span>/mo</span>
+              ₹${Number(p.price || 0).toLocaleString('en-IN')} <span>/mo</span>
             </div>
             <div class="card-deposit">
-              Dep: ₹${(p.deposit / 1000).toFixed(0)}k
+              Dep: ₹${(Number(p.deposit || 0) / 1000).toFixed(0)}k
             </div>
           </div>
 
-          <h3 class="card-title" title="${p.title}">${p.title}</h3>
+          <h3 class="card-title" title="${escapeAttr(p.title)}">${sanitizeHTML(p.title)}</h3>
           
           <div class="card-locality">
-            <i class="fa-solid fa-location-dot" style="color: var(--accent-emerald);"></i> ${p.locality}, Bengaluru
+            <i class="fa-solid fa-location-dot" style="color: var(--accent-emerald);"></i> ${sanitizeHTML(p.locality)}, Bengaluru
           </div>
 
           <div class="card-specs">
             <div class="spec-item">
-              <i class="fa-solid fa-bed"></i> ${p.bhk}
+              <i class="fa-solid fa-bed"></i> ${sanitizeHTML(p.bhk)}
             </div>
             <div class="spec-item">
-              <i class="fa-solid fa-ruler-combined"></i> ${p.sqft} sq ft
+              <i class="fa-solid fa-ruler-combined"></i> ${sanitizeHTML(p.sqft)} sq ft
             </div>
             <div class="spec-item">
-              <i class="fa-solid fa-bath"></i> ${p.bathrooms} Bath
+              <i class="fa-solid fa-bath"></i> ${sanitizeHTML(p.bathrooms || 2)} Bath
             </div>
             <div class="spec-item">
-              <i class="fa-solid fa-couch"></i> ${p.furnishing.split(' ')[0]}
+              <i class="fa-solid fa-couch"></i> ${sanitizeHTML((p.furnishing || '').split(' ')[0])}
             </div>
           </div>
 
           <div class="card-actions">
-            <button class="btn-card-secondary btn-view-details" data-prop-id="${p.id}">
+            <button class="btn-card-secondary btn-view-details" data-prop-id="${escapeAttr(p.id)}">
               <i class="fa-solid fa-eye"></i> Details
             </button>
-            <button class="btn-card-secondary btn-book-call-card" data-prop-id="${p.id}" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 700;">
+            <button class="btn-card-secondary btn-book-call-card" data-prop-id="${escapeAttr(p.id)}" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 700;">
               <i class="fa-solid fa-phone-volume"></i> Call
             </button>
-            <button class="btn-card-primary btn-schedule-visit" data-prop-id="${p.id}">
+            <button class="btn-card-primary btn-schedule-visit" data-prop-id="${escapeAttr(p.id)}">
               <i class="fa-solid fa-calendar-check"></i> Book Visit
             </button>
           </div>

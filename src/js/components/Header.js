@@ -1,4 +1,5 @@
 import { state } from '../state.js';
+import { sanitizeHTML, escapeAttr } from '../utils/security.js';
 
 export function renderHeader() {
   const root = document.getElementById('header-root');
@@ -48,9 +49,9 @@ export function renderHeader() {
 
           ${state.currentUser ? `
             <div style="display: flex; align-items: center; gap: 0.35rem;">
-              <button id="btn-user-profile" class="nav-btn" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 700;" title="Logged in as ${state.currentUser.name}">
+              <button id="btn-user-profile" class="nav-btn" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 700;" title="Logged in as ${escapeAttr(state.currentUser.name || '')}">
                 <i class="fa-solid fa-user-circle"></i>
-                <span>${state.currentUser.name.split(' ')[0]}</span>
+                <span>${sanitizeHTML(String(state.currentUser.name || '').split(' ')[0])}</span>
               </button>
               <button id="btn-user-logout" class="nav-btn" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444;" title="Sign Out">
                 <i class="fa-solid fa-right-from-bracket"></i>

@@ -13,8 +13,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'vramanarentals@gmail.com').trim().toLowerCase();
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ramana@123';
-const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'tbp_neon_super_admin_secret_key_2026_x89a';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || process.env.JWT_SECRET || 'tbp_neon_super_admin_secret_key_2026_x89a';
 
 function generateAdminToken(email) {
   return jwt.sign(
@@ -37,44 +37,111 @@ function verifyAdminToken(token) {
   return false;
 }
 
-// Admin authorization middleware for sensitive endpoints
-function requireAdmin(req, res, next) {
-  const authHeader = req.headers['authorization'] || req.headers['x-admin-token'] || req.headers['x-admin-key'];
-  const token = authHeader?.replace(/^Bearer\s+/i, '').trim();
-
-  // 1. Direct admin secret key match
-  if (token === ADMIN_SECRET_KEY || req.headers['x-admin-key'] === ADMIN_SECRET_KEY) {
-    return next();
+// Helper to extract bearer token from request
+function getBearerToken(req) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) return null;
+  const parts = authHeader.split(' ');
+  if (parts.length === 2 && /^Bearer$/i.test(parts[0])) {
+    return parts[1].trim();
   }
-  // 2. Verified JWT token
+  return authHeader.trim();
+}
+
+// Strict Admin authorization middleware - requires valid JWT token
+function requireAdmin(req, res, next) {
+  const token = getBearerToken(req);
+
   if (token && verifyAdminToken(token)) {
     return next();
   }
-  // 3. Permissive fallback for property creation / update / image upload from our website
-  if ((req.method === 'POST' || req.method === 'PUT') && req.path.startsWith('/api/properties')) {
-    return next();
-  }
-  if (req.method === 'POST' && req.path === '/api/upload-image' && req.body?.imageData) {
-    return next();
-  }
 
-  return res.status(403).json({ error: 'Unauthorized: Admin privileges required.' });
+  return res.status(403).json({ error: 'Unauthorized: Valid administrator privileges required.' });
 }
 
-// Rate limiter for authentication endpoints
+// Security rate limiters
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1000,
-  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1' || req.hostname === 'localhost',
-  message: { success: false, message: 'Too many login/registration attempts. Please try again in 15 minutes.' },
+  max: 20,
+  skip: (req) => process.env.NODE_ENV === 'test',
+  message: { success: false, message: 'Too many login attempts. Please try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false
 });
 
-// Middleware - supports JSON payloads up to 50MB for high-res mobile photos
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+const leadsRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 25,
+  message: { error: 'Too many inquiry submissions. Please wait before submitting more inquiries.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const uploadRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  message: { error: 'Upload rate limit reached. Please wait before uploading more photos.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const publicListingRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 15,
+  message: { error: 'Listing submission limit reached. Please contact proprietor directly for bulk listings.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Security: Disable Express fingerprinting
+app.disable('x-powered-by');
+
+// Security Headers Middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
+
+// Configured CORS whitelist
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
+  : [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'https://thebangaloreproperties.com',
+      'https://www.thebangaloreproperties.com'
+    ];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.indexOf(origin) !== -1 ||
+      allowedOrigins.includes('*') ||
+      origin.endsWith('.vercel.app')
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS policy violation: origin not allowed.'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Payload limits: max 15MB for compressed property photos
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.use('/api/auth/', authRateLimiter);
 
 // Helper to format property row to frontend model
@@ -115,7 +182,7 @@ function formatPropertyRow(row) {
 // -------------------------------------------------------------
 app.get('/api/health', async (req, res) => {
   try {
-    const dbTest = await query('SELECT NOW() as time, current_database() as db_name;');
+    const dbTest = await query('SELECT NOW() as time;');
     const propCount = await query('SELECT COUNT(*) FROM properties;');
     const imageCount = await query('SELECT COUNT(*) FROM property_images;');
     const userCount = await query('SELECT COUNT(*) FROM users;');
@@ -124,7 +191,7 @@ app.get('/api/health', async (req, res) => {
     res.json({
       status: 'ok',
       database: 'Neon PostgreSQL Connected',
-      currentDb: dbTest.rows[0].db_name,
+      currentDb: 'Connected',
       serverTime: dbTest.rows[0].time,
       counts: {
         properties: parseInt(propCount.rows[0].count, 10),
@@ -134,7 +201,7 @@ app.get('/api/health', async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Health check failed' });
   }
 });
 
@@ -142,17 +209,43 @@ app.get('/api/health', async (req, res) => {
 // IMAGE UPLOAD & SERVING (DIRECT TO/FROM NEON DATABASE)
 // -------------------------------------------------------------
 
-// Upload an image directly into the PostgreSQL Database (Admin Only)
-app.post('/api/upload-image', requireAdmin, async (req, res) => {
+// Upload an image directly into the PostgreSQL Database (Validated, Rate-Limited)
+app.post('/api/upload-image', uploadRateLimiter, async (req, res) => {
   try {
     const { imageData, propertyId, fileName, mimeType } = req.body;
-    if (!imageData) {
-      return res.status(400).json({ error: 'imageData is required' });
+    if (!imageData || typeof imageData !== 'string') {
+      return res.status(400).json({ error: 'Valid imageData is required' });
+    }
+
+    // Security check: validate data URI format and whitelist MIME types (jpeg, png, webp)
+    if (!imageData.startsWith('data:')) {
+      return res.status(400).json({ error: 'Image must be a valid base64 data URI.' });
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    const mimeMatch = imageData.substring(0, 50).match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,/);
+    if (!mimeMatch) {
+      return res.status(400).json({ error: 'Invalid image format. Expected base64 image data.' });
+    }
+
+    const detectedMime = mimeMatch[1].toLowerCase();
+    if (!allowedMimes.includes(detectedMime)) {
+      return res.status(400).json({ error: 'Unsupported image type. Only JPEG, PNG, and WebP are allowed.' });
+    }
+
+    // Check payload size (max 10MB)
+    const fileSize = Buffer.byteLength(imageData, 'utf8');
+    if (fileSize > 12 * 1024 * 1024) {
+      return res.status(400).json({ error: 'Image exceeds maximum allowed size (10MB).' });
+    }
+
+    // Check for malicious embedded script tags in data
+    if (/<script|<svg|javascript:|onload|onerror/i.test(imageData.substring(0, 500))) {
+      return res.status(400).json({ error: 'Malformed or potentially malicious image content detected.' });
     }
 
     const imageId = `img-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-    const effectiveMime = mimeType || (imageData.startsWith('data:image/png') ? 'image/png' : 'image/jpeg');
-    const fileSize = Buffer.byteLength(imageData, 'utf8');
+    const sanitizedFileName = (fileName || 'property-photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 100);
 
     const insertQuery = `
       INSERT INTO property_images (id, property_id, image_data, mime_type, file_name, file_size)
@@ -162,10 +255,10 @@ app.post('/api/upload-image', requireAdmin, async (req, res) => {
 
     const result = await query(insertQuery, [
       imageId,
-      propertyId || null,
+      propertyId ? String(propertyId).substring(0, 100) : null,
       imageData,
-      effectiveMime,
-      fileName || 'uploaded-property-photo.jpg',
+      detectedMime,
+      sanitizedFileName,
       fileSize
     ]);
 
@@ -174,12 +267,12 @@ app.post('/api/upload-image', requireAdmin, async (req, res) => {
       success: true,
       id: imageId,
       url: `/api/images/${imageId}`,
-      dataUrl: imageData, // Direct base64 if needed for immediate display
+      dataUrl: imageData,
       metadata: result.rows[0]
     });
   } catch (err) {
     console.error('Failed to upload image to Neon DB:', err);
-    res.status(500).json({ error: 'Failed to store image in database: ' + err.message });
+    res.status(500).json({ error: 'Failed to store image in database.' });
   }
 });
 
@@ -187,30 +280,38 @@ app.post('/api/upload-image', requireAdmin, async (req, res) => {
 app.get('/api/images/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await query('SELECT * FROM property_images WHERE id = $1', [id]);
+    const cleanId = String(id).replace(/[^a-zA-Z0-9_-]/g, '');
+    const result = await query('SELECT * FROM property_images WHERE id = $1', [cleanId]);
     
     if (result.rows.length === 0) {
-      return res.status(404).send('Image not found in database');
+      return res.redirect('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80');
     }
 
     const imgRow = result.rows[0];
     const dataUrl = imgRow.image_data;
 
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', "default-src 'none'");
+
     // If it's a data URL (e.g. data:image/jpeg;base64,....)
     if (dataUrl.startsWith('data:')) {
-      const parts = dataUrl.split(',');
-      const mimeMatch = parts[0].match(/:(.*?);/);
-      const mime = mimeMatch ? mimeMatch[1] : (imgRow.mime_type || 'image/jpeg');
-      const base64Data = parts[1];
-      const imgBuffer = Buffer.from(base64Data, 'base64');
-      
-      res.setHeader('Content-Type', mime);
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      return res.send(imgBuffer);
+      const commaIdx = dataUrl.indexOf(',');
+      if (commaIdx !== -1) {
+        const header = dataUrl.substring(0, commaIdx);
+        const base64Data = dataUrl.substring(commaIdx + 1);
+        const mimeMatch = header.match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : (imgRow.mime_type || 'image/jpeg');
+        const imgBuffer = Buffer.from(base64Data, 'base64');
+        
+        res.setHeader('Content-Type', mime);
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        return res.send(imgBuffer);
+      }
     }
 
     // Otherwise redirect or send raw data
     res.setHeader('Content-Type', imgRow.mime_type || 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
     res.send(dataUrl);
   } catch (err) {
     console.error('Error fetching image from DB:', err);
@@ -230,15 +331,43 @@ app.get('/api/properties', async (req, res) => {
     res.json(properties);
   } catch (err) {
     console.error('Error fetching properties from DB:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to fetch properties' });
   }
 });
 
-// Create a new property (Admin Only)
-app.post('/api/properties', requireAdmin, async (req, res) => {
+// Create a new property (Admin full access; Public listing unverified default)
+app.post('/api/properties', async (req, res) => {
   try {
-    const prop = req.body;
-    const id = prop.id || `prop-custom-${Date.now()}`;
+    const token = getBearerToken(req);
+    const isAdmin = token && verifyAdminToken(token);
+
+    if (!isAdmin) {
+      let rateLimitPassed = false;
+      await new Promise((resolve) => {
+        publicListingRateLimiter(req, res, () => {
+          rateLimitPassed = true;
+          resolve();
+        });
+      });
+      if (!rateLimitPassed) return;
+    }
+
+    const prop = req.body || {};
+
+    if (!prop.title || typeof prop.title !== 'string' || !prop.title.trim()) {
+      return res.status(400).json({ error: 'Property title is required.' });
+    }
+    if (!prop.locality || typeof prop.locality !== 'string' || !prop.locality.trim()) {
+      return res.status(400).json({ error: 'Locality is required.' });
+    }
+
+    const id = isAdmin && prop.id
+      ? String(prop.id).substring(0, 100)
+      : `prop-user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+    const isVerified = isAdmin ? (prop.isVerified ?? true) : false;
+    const isFeatured = isAdmin ? (prop.isFeatured ?? false) : false;
+    const zeroBrokerage = isAdmin ? (prop.zeroBrokerage ?? true) : false;
 
     const insertQuery = `
       INSERT INTO properties (
@@ -282,38 +411,38 @@ app.post('/api/properties', requireAdmin, async (req, res) => {
 
     const result = await query(insertQuery, [
       id,
-      prop.title,
-      prop.locality,
-      prop.address || `${prop.locality}, Bengaluru`,
-      prop.price || 0,
-      prop.deposit || 0,
-      prop.bhk || '2 BHK',
-      prop.bhkType || '2bhk',
-      prop.type || 'Apartment',
-      prop.furnishing || 'Semi-Furnished',
-      prop.sqft || 1000,
-      prop.bathrooms || 2,
-      prop.floor || '2nd Floor',
-      prop.facing || 'East Facing',
-      prop.availableFrom || 'Immediate',
-      prop.preferredTenants || 'Any',
-      prop.zeroBrokerage ?? true,
-      prop.isVerified ?? true,
-      prop.isFeatured ?? false,
-      prop.description || '',
-      prop.ownerName || 'Direct Owner',
-      prop.ownerPhone || '',
-      prop.ownerType || 'Direct Owner',
-      JSON.stringify(prop.amenities || ['Power Backup', 'Lift', 'Car Parking', '24/7 Security']),
-      JSON.stringify(prop.images || ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"]),
-      JSON.stringify(prop.proximity || {})
+      String(prop.title).substring(0, 255),
+      String(prop.locality).substring(0, 100),
+      String(prop.address || `${prop.locality}, Bengaluru`).substring(0, 500),
+      Number(prop.price) || 0,
+      Number(prop.deposit) || 0,
+      String(prop.bhk || '2 BHK').substring(0, 50),
+      String(prop.bhkType || '2bhk').substring(0, 50),
+      String(prop.type || 'Apartment').substring(0, 50),
+      String(prop.furnishing || 'Semi-Furnished').substring(0, 50),
+      Number(prop.sqft) || 1000,
+      Number(prop.bathrooms) || 2,
+      String(prop.floor || '2nd Floor').substring(0, 50),
+      String(prop.facing || 'East Facing').substring(0, 50),
+      String(prop.availableFrom || 'Immediate').substring(0, 100),
+      String(prop.preferredTenants || 'Any').substring(0, 50),
+      zeroBrokerage,
+      isVerified,
+      isFeatured,
+      String(prop.description || '').substring(0, 3000),
+      String(prop.ownerName || 'Direct Owner').substring(0, 100),
+      String(prop.ownerPhone || '').substring(0, 50),
+      String(prop.ownerType || 'Direct Owner').substring(0, 50),
+      JSON.stringify(Array.isArray(prop.amenities) ? prop.amenities.slice(0, 50) : ['Power Backup', 'Lift', 'Car Parking', '24/7 Security']),
+      JSON.stringify(Array.isArray(prop.images) ? prop.images.slice(0, 20) : ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"]),
+      JSON.stringify(typeof prop.proximity === 'object' && prop.proximity !== null ? prop.proximity : {})
     ]);
 
     const createdProp = formatPropertyRow(result.rows[0]);
     res.status(201).json(createdProp);
   } catch (err) {
     console.error('Error creating property in DB:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to process property listing.' });
   }
 });
 
@@ -491,10 +620,17 @@ app.get('/api/leads', requireAdmin, async (req, res) => {
   }
 });
 
-app.post('/api/leads', async (req, res) => {
+app.post('/api/leads', leadsRateLimiter, async (req, res) => {
   try {
     const { tenantName, tenantPhone, propertyId, propertyTitle, locality, notes, status, date } = req.body;
-    const id = req.body.id || `lead-${Date.now()}`;
+    if (!tenantName || typeof tenantName !== 'string' || !tenantName.trim()) {
+      return res.status(400).json({ error: 'Tenant name is required.' });
+    }
+    if (!tenantPhone || typeof tenantPhone !== 'string' || !tenantPhone.trim()) {
+      return res.status(400).json({ error: 'Contact phone number is required.' });
+    }
+
+    const id = req.body.id ? String(req.body.id).substring(0, 100) : `lead-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const leadDate = date || new Date().toISOString().split('T')[0];
 
     const insertQuery = `
@@ -505,13 +641,13 @@ app.post('/api/leads', async (req, res) => {
 
     const result = await query(insertQuery, [
       id,
-      tenantName,
-      tenantPhone,
-      propertyId || null,
-      propertyTitle || '',
-      locality || 'Bengaluru',
-      status || 'New',
-      notes || '',
+      String(tenantName).trim().substring(0, 100),
+      String(tenantPhone).trim().substring(0, 30),
+      propertyId ? String(propertyId).substring(0, 100) : null,
+      String(propertyTitle || '').substring(0, 200),
+      String(locality || 'Bengaluru').substring(0, 100),
+      String(status || 'New').substring(0, 50),
+      String(notes || '').substring(0, 1000),
       leadDate
     ]);
 
@@ -665,7 +801,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Explicitly reject legacy admin password under all circumstances
     if (/^ramana[\s_-]*rentals$/i.test(cleanPass) || cleanPass.toLowerCase().includes('ramana rentals') || cleanPass.toLowerCase().replace(/\s+/g, '') === 'ramanarentals') {
-      return res.status(401).json({ success: false, message: 'Access Denied: Legacy password "ramana rentals" has been permanently removed. Please use ramana@123.' });
+      return res.status(401).json({ success: false, message: 'Access Denied: Legacy credentials format is no longer accepted. Please use valid administrator credentials.' });
     }
 
     // Check admin credentials against environment config
@@ -673,7 +809,7 @@ app.post('/api/auth/login', async (req, res) => {
       const adminRes = await query('SELECT * FROM users WHERE email = $1', [cleanEmail]);
       const dbPass = adminRes.rows.length > 0 ? adminRes.rows[0].password : null;
       let isMatch = false;
-      if (cleanPass === ADMIN_PASSWORD) {
+      if (ADMIN_PASSWORD && cleanPass === ADMIN_PASSWORD) {
         isMatch = true;
       } else if (dbPass) {
         if (dbPass.startsWith('$2a$') || dbPass.startsWith('$2b$')) {

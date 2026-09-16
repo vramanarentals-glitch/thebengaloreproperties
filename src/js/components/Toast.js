@@ -4,11 +4,18 @@ export function showToast(message, icon = 'fa-circle-check') {
 
   const toast = document.createElement('div');
   toast.className = 'toast';
-  toast.innerHTML = `
-    <i class="fa-solid ${icon}" style="color: var(--accent-emerald); font-size: 1.2rem;"></i>
-    <span>${message}</span>
-  `;
 
+  const iconEl = document.createElement('i');
+  const safeIcon = (typeof icon === 'string' && /^[a-zA-Z0-9\-_ ]+$/.test(icon)) ? icon : 'fa-circle-check';
+  iconEl.className = `fa-solid ${safeIcon}`;
+  iconEl.style.color = 'var(--accent-emerald)';
+  iconEl.style.fontSize = '1.2rem';
+
+  const textSpan = document.createElement('span');
+  textSpan.textContent = String(message || '');
+
+  toast.appendChild(iconEl);
+  toast.appendChild(textSpan);
   container.appendChild(toast);
 
   setTimeout(() => {

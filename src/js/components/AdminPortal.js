@@ -3,6 +3,7 @@ import { state } from '../state.js';
 import { api } from '../api.js';
 import { showToast } from './Toast.js';
 import { compressImage, processAndCompressImages } from '../utils/imageCompressor.js';
+import { sanitizeHTML, escapeAttr, sanitizeUrl, sanitizePhone } from '../utils/security.js';
 
 export function renderAdminPortal() {
   if (state.activeModal !== 'admin-portal') return;
@@ -78,9 +79,9 @@ function renderAdminLoginForm(root) {
                 <input 
                   type="password" 
                   id="admin-pass-input" 
-                  placeholder="Enter administrator password (ramana@123)" 
+                  placeholder="Enter administrator password" 
                   required 
-                  autocomplete="new-password"
+                  autocomplete="current-password"
                   style="width: 100%; padding: 0.85rem 6.5rem 0.85rem 2.5rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 500; box-sizing: border-box;"
                 />
                 <button 
@@ -177,12 +178,12 @@ function renderAdminLoginForm(root) {
 
     if (isLegacyPass) {
       if (errBox && errMsg) {
-        errMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Access Denied:</strong> "ramana rentals" has been permanently removed. Please use the new admin password: <strong>ramana@123</strong>';
+        errMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Access Denied:</strong> Invalid credentials or deprecated password format.';
         errBox.style.display = 'block';
       }
       const passInputEl = document.getElementById('admin-pass-input');
       if (passInputEl) passInputEl.value = '';
-      showToast('❌ Access Denied: "ramana rentals" is completely removed! Use ramana@123');
+      showToast('❌ Access Denied: Invalid credentials.');
       return;
     }
 
@@ -256,7 +257,7 @@ function renderAdminDashboard(root) {
               <span class="admin-status-badge">PROPRIETOR ONLINE</span>
             </div>
             <p class="admin-subtitle-info">
-              Logged in as <strong>${c.proprietor} (${c.role})</strong> | Phone: ${c.phone}
+              Logged in as <strong>${sanitizeHTML(c.proprietor)} (${sanitizeHTML(c.role)})</strong> | Phone: ${sanitizeHTML(c.phone)}
             </p>
           </div>
         </div>
@@ -409,16 +410,16 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
                   <tr>
                     <td>
                       <div style="display: flex; align-items: center; gap: 0.65rem;">
-                        <img src="${p.images[0]}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;" />
+                        <img src="${sanitizeUrl(p.images[0])}" alt="${escapeAttr(p.title)}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;" />
                         <div>
-                          <div style="font-weight: 700; font-size: 0.88rem;">${p.title}</div>
-                          <div style="font-size: 0.75rem; color: var(--text-secondary);">${p.sqft} sqft | ${p.bhk}</div>
+                          <div style="font-weight: 700; font-size: 0.88rem;">${sanitizeHTML(p.title)}</div>
+                          <div style="font-size: 0.75rem; color: var(--text-secondary);">${sanitizeHTML(p.sqft)} sqft | ${sanitizeHTML(p.bhk)}</div>
                         </div>
                       </div>
                     </td>
-                    <td><span class="badge-locality">${p.locality}</span></td>
+                    <td><span class="badge-locality">${sanitizeHTML(p.locality)}</span></td>
                     <td style="font-weight: 700; color: var(--accent-emerald);">₹${p.price.toLocaleString('en-IN')}</td>
-                    <td><span style="font-size: 0.8rem; font-weight: 600;">${p.type}</span></td>
+                    <td><span style="font-size: 0.8rem; font-weight: 600;">${sanitizeHTML(p.type)}</span></td>
                     <td>
                       <div style="display: flex; gap: 0.25rem;">
                         ${p.isVerified ? '<span class="mini-flag mini-flag-emerald">🛡️</span>' : ''}
@@ -434,10 +435,10 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
           <div class="show-mobile-flex flex-column gap-3">
             ${props.slice(0, 4).map(p => `
               <div class="mobile-dash-prop-card">
-                <img src="${p.images[0]}" class="mobile-dash-prop-img" />
+                <img src="${sanitizeUrl(p.images[0])}" alt="${escapeAttr(p.title)}" class="mobile-dash-prop-img" />
                 <div class="mobile-dash-prop-info" style="min-width: 0; flex: 1;">
-                  <div class="mobile-dash-prop-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.title}</div>
-                  <div class="mobile-dash-prop-meta" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.locality} • ${p.bhk} • ${p.sqft} sqft</div>
+                  <div class="mobile-dash-prop-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sanitizeHTML(p.title)}</div>
+                  <div class="mobile-dash-prop-meta" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sanitizeHTML(p.locality)} • ${sanitizeHTML(p.bhk)} • ${sanitizeHTML(p.sqft)} sqft</div>
                   <div class="mobile-dash-prop-price">₹${p.price.toLocaleString('en-IN')}/mo</div>
                 </div>
               </div>
@@ -452,11 +453,11 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
               <i class="fa-solid fa-user-tie" style="color: var(--accent-emerald);"></i> Proprietor Details
             </h4>
             <div style="font-size: 0.9rem; line-height: 1.6;">
-              <div><strong>Name:</strong> ${c.proprietor} (${c.role})</div>
-              <div><strong>Phone:</strong> ${c.phone}</div>
-              <div><strong>WhatsApp:</strong> ${c.whatsapp}</div>
-              <div><strong>Email:</strong> ${c.email}</div>
-              <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);"><strong>Office:</strong> ${c.address}</div>
+              <div><strong>Name:</strong> ${sanitizeHTML(c.proprietor)} (${sanitizeHTML(c.role)})</div>
+              <div><strong>Phone:</strong> ${sanitizeHTML(c.phone)}</div>
+              <div><strong>WhatsApp:</strong> ${sanitizeHTML(c.whatsapp)}</div>
+              <div><strong>Email:</strong> ${sanitizeHTML(c.email)}</div>
+              <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);"><strong>Office:</strong> ${sanitizeHTML(c.address)}</div>
             </div>
             <button class="nav-btn" data-admin-tab-goto="settings" style="width: 100%; margin-top: 1rem; justify-content: center; background: rgba(16,185,129,0.15); border: 1px solid #10b981; color: #10b981; font-size: 0.85rem;">
               <i class="fa-solid fa-pen-to-square"></i> Edit Proprietor Info
@@ -529,20 +530,20 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
             </thead>
             <tbody>
               ${props.map(p => `
-                <tr data-prop-row-id="${p.id}">
+                <tr data-prop-row-id="${escapeAttr(p.id)}">
                   <td>
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
-                      <img src="${p.images[0]}" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover;" />
+                      <img src="${sanitizeUrl(p.images[0])}" alt="${escapeAttr(p.title)}" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover;" />
                       <div>
-                        <div style="font-weight: 700; font-size: 0.9rem;">${p.title}</div>
-                        <div style="font-size: 0.78rem; color: var(--text-secondary);">${p.bhk} | Floor: <strong style="color: var(--text-primary);">${p.floor || 'Ground Floor'}</strong> | ${p.sqft} sqft | Owner: ${p.ownerName}</div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">${sanitizeHTML(p.title)}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-secondary);">${sanitizeHTML(p.bhk)} | Floor: <strong style="color: var(--text-primary);">${sanitizeHTML(p.floor || 'Ground Floor')}</strong> | ${sanitizeHTML(p.sqft)} sqft | Owner: ${sanitizeHTML(p.ownerName)}</div>
                       </div>
                     </div>
                   </td>
-                  <td><span class="badge-locality">${p.locality}</span></td>
+                  <td><span class="badge-locality">${sanitizeHTML(p.locality)}</span></td>
                   <td>
-                    <select class="admin-floor-select" data-prop-id="${p.id}" style="padding: 0.35rem 0.6rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); cursor: pointer;" title="Change Floor Option">
-                      ${!['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', '3rd of 8', '4th Floor', '5th Floor', 'Top Floor / Penthouse'].includes(p.floor) && p.floor ? `<option value="${p.floor}" selected>${p.floor}</option>` : ''}
+                    <select class="admin-floor-select" data-prop-id="${escapeAttr(p.id)}" style="padding: 0.35rem 0.6rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); cursor: pointer;" title="Change Floor Option">
+                      ${!['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', '3rd of 8', '4th Floor', '5th Floor', 'Top Floor / Penthouse'].includes(p.floor) && p.floor ? `<option value="${escapeAttr(p.floor)}" selected>${sanitizeHTML(p.floor)}</option>` : ''}
                       <option value="Ground Floor" ${p.floor === 'Ground Floor' ? 'selected' : ''}>Ground Floor</option>
                       <option value="1st Floor" ${p.floor === '1st Floor' ? 'selected' : ''}>1st Floor</option>
                       <option value="2nd Floor" ${p.floor === '2nd Floor' ? 'selected' : ''}>2nd Floor</option>
@@ -557,18 +558,18 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
                     <div style="font-weight: 800; color: var(--accent-emerald);">₹${p.price.toLocaleString('en-IN')}/mo</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted);">Dep: ₹${p.deposit.toLocaleString('en-IN')}</div>
                   </td>
-                  <td><span style="font-size: 0.82rem;">${p.furnishing}</span></td>
+                  <td><span style="font-size: 0.82rem;">${sanitizeHTML(p.furnishing)}</span></td>
                   <td>
-                    <button class="flag-toggle-btn ${p.isVerified ? 'active' : ''}" data-flag-prop="${p.id}" data-flag-name="isVerified">
+                    <button class="flag-toggle-btn ${p.isVerified ? 'active' : ''}" data-flag-prop="${escapeAttr(p.id)}" data-flag-name="isVerified">
                       ${p.isVerified ? '🛡️ Verified' : 'Unverified'}
                     </button>
                   </td>
                   <td>
                     <div style="display: flex; gap: 0.4rem;">
-                      <button class="btn-admin-edit" data-edit-prop="${p.id}" title="Edit Property Details">
+                      <button class="btn-admin-edit" data-edit-prop="${escapeAttr(p.id)}" title="Edit Property Details">
                         <i class="fa-solid fa-pen-to-square"></i>
                       </button>
-                      <button class="btn-admin-del" data-del-prop="${p.id}" title="Delete Property">
+                      <button class="btn-admin-del" data-del-prop="${escapeAttr(p.id)}" title="Delete Property">
                         <i class="fa-solid fa-trash-can"></i>
                       </button>
                     </div>
@@ -582,16 +583,16 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
         <!-- Mobile Card List View -->
         <div class="show-mobile-flex flex-column gap-3">
           ${props.map(p => `
-            <div class="admin-mobile-manage-card" data-mobile-prop-card="${p.id}">
+            <div class="admin-mobile-manage-card" data-mobile-prop-card="${escapeAttr(p.id)}">
               <div style="display: flex; gap: 0.75rem; align-items: center;">
-                <img src="${p.images[0]}" style="width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0;" />
+                <img src="${sanitizeUrl(p.images[0])}" alt="${escapeAttr(p.title)}" style="width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0;" />
                 <div style="flex: 1; min-width: 0;">
-                  <div style="font-weight: 800; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.title}</div>
-                  <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.locality} • ${p.bhk} • ${p.sqft} sqft</div>
+                  <div style="font-weight: 800; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sanitizeHTML(p.title)}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sanitizeHTML(p.locality)} • ${sanitizeHTML(p.bhk)} • ${sanitizeHTML(p.sqft)} sqft</div>
                   <div style="display: flex; align-items: center; gap: 0.35rem; margin-top: 4px;">
                     <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">FLOOR:</span>
-                    <select class="admin-floor-select" data-prop-id="${p.id}" style="padding: 0.2rem 0.45rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);">
-                      ${!['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', '3rd of 8', '4th Floor', '5th Floor', 'Top Floor / Penthouse'].includes(p.floor) && p.floor ? `<option value="${p.floor}" selected>${p.floor}</option>` : ''}
+                    <select class="admin-floor-select" data-prop-id="${escapeAttr(p.id)}" style="padding: 0.2rem 0.45rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);">
+                      ${!['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', '3rd of 8', '4th Floor', '5th Floor', 'Top Floor / Penthouse'].includes(p.floor) && p.floor ? `<option value="${escapeAttr(p.floor)}" selected>${sanitizeHTML(p.floor)}</option>` : ''}
                       <option value="Ground Floor" ${p.floor === 'Ground Floor' ? 'selected' : ''}>Ground Floor</option>
                       <option value="1st Floor" ${p.floor === '1st Floor' ? 'selected' : ''}>1st Floor</option>
                       <option value="2nd Floor" ${p.floor === '2nd Floor' ? 'selected' : ''}>2nd Floor</option>
@@ -605,17 +606,17 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
                   <div style="font-weight: 800; color: var(--accent-emerald); margin-top: 2px; font-size: 0.88rem;">₹${p.price.toLocaleString('en-IN')}/mo</div>
                 </div>
                 <div style="display: flex; gap: 0.35rem; align-self: center; flex-shrink: 0;">
-                  <button class="btn-admin-edit" data-edit-prop="${p.id}" title="Edit Property Details">
+                  <button class="btn-admin-edit" data-edit-prop="${escapeAttr(p.id)}" title="Edit Property Details">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
-                  <button class="btn-admin-del" data-del-prop="${p.id}" title="Delete Property">
+                  <button class="btn-admin-del" data-del-prop="${escapeAttr(p.id)}" title="Delete Property">
                     <i class="fa-solid fa-trash-can"></i>
                   </button>
                 </div>
               </div>
 
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px dashed var(--border-color);">
-                <button class="flag-toggle-btn ${p.isVerified ? 'active' : ''}" data-flag-prop="${p.id}" data-flag-name="isVerified" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+                <button class="flag-toggle-btn ${p.isVerified ? 'active' : ''}" data-flag-prop="${escapeAttr(p.id)}" data-flag-name="isVerified" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
                   ${p.isVerified ? '🛡️ Verified Listing' : 'Unverified Listing'}
                 </button>
               </div>
@@ -846,22 +847,22 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
               ${leads.length === 0 ? '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No active tenant inquiries.</td></tr>' : ''}
               ${leads.map(l => `
                 <tr>
-                  <td><span style="font-size: 0.82rem; color: var(--text-muted);">${l.date}</span></td>
-                  <td><strong>${l.tenantName}</strong></td>
+                  <td><span style="font-size: 0.82rem; color: var(--text-muted);">${sanitizeHTML(l.date)}</span></td>
+                  <td><strong>${sanitizeHTML(l.tenantName)}</strong></td>
                   <td>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                      <span style="font-weight: 700;">${l.tenantPhone}</span>
-                      <a href="https://wa.me/${l.tenantPhone.replace(/\D/g, '')}?text=Hello%20${encodeURIComponent(l.tenantName)},%20this%20is%20V.%20RAMANA%20from%20The%20Bangalore%20Properties%20regarding%20${encodeURIComponent(l.propertyTitle)}." target="_blank" style="color: #25D366; font-size: 1.1rem;" title="WhatsApp Tenant">
+                      <span style="font-weight: 700;">${sanitizeHTML(l.tenantPhone)}</span>
+                      <a href="https://wa.me/${encodeURIComponent(sanitizePhone(l.tenantPhone))}?text=Hello%20${encodeURIComponent(l.tenantName || '')},%20this%20is%20V.%20RAMANA%20from%20The%20Bangalore%20Properties%20regarding%20${encodeURIComponent(l.propertyTitle || '')}." target="_blank" style="color: #25D366; font-size: 1.1rem;" title="WhatsApp Tenant">
                         <i class="fa-brands fa-whatsapp"></i>
                       </a>
                     </div>
                   </td>
                   <td>
-                    <div style="font-size: 0.88rem; font-weight: 600;">${l.propertyTitle}</div>
-                    <div style="font-size: 0.75rem; color: var(--accent-emerald);">${l.locality}</div>
+                    <div style="font-size: 0.88rem; font-weight: 600;">${sanitizeHTML(l.propertyTitle)}</div>
+                    <div style="font-size: 0.75rem; color: var(--accent-emerald);">${sanitizeHTML(l.locality)}</div>
                   </td>
                   <td>
-                    <select class="lead-status-select" data-lead-id="${l.id}">
+                    <select class="lead-status-select" data-lead-id="${escapeAttr(l.id)}">
                       <option value="New" ${l.status === 'New' ? 'selected' : ''}>🔴 New Lead</option>
                       <option value="Contacted" ${l.status === 'Contacted' ? 'selected' : ''}>🟡 Contacted</option>
                       <option value="Scheduled" ${l.status === 'Scheduled' ? 'selected' : ''}>🔵 Visit Scheduled</option>
@@ -869,7 +870,7 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
                     </select>
                   </td>
                   <td>
-                    <button class="btn-admin-del" data-del-lead="${l.id}" title="Delete Lead">
+                    <button class="btn-admin-del" data-del-lead="${escapeAttr(l.id)}" title="Delete Lead">
                       <i class="fa-solid fa-trash-can"></i>
                     </button>
                   </td>
@@ -886,25 +887,25 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
             <div class="admin-mobile-lead-card">
               <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
                 <div style="min-width: 0; flex: 1;">
-                  <div style="font-weight: 800; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${l.tenantName}</div>
-                  <div style="font-size: 0.75rem; color: var(--text-muted);">${l.date}</div>
+                  <div style="font-weight: 800; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sanitizeHTML(l.tenantName)}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">${sanitizeHTML(l.date)}</div>
                 </div>
-                <button class="btn-admin-del" data-del-lead="${l.id}" style="flex-shrink: 0;" title="Delete Lead">
+                <button class="btn-admin-del" data-del-lead="${escapeAttr(l.id)}" style="flex-shrink: 0;" title="Delete Lead">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
               </div>
 
               <div style="margin: 0.5rem 0; font-size: 0.85rem; min-width: 0;">
-                <div style="font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${l.propertyTitle}</div>
-                <div style="font-size: 0.75rem; color: var(--accent-emerald);">${l.locality}</div>
+                <div style="font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sanitizeHTML(l.propertyTitle)}</div>
+                <div style="font-size: 0.75rem; color: var(--accent-emerald);">${sanitizeHTML(l.locality)}</div>
               </div>
 
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px dashed var(--border-color);">
-                <a href="https://wa.me/${l.tenantPhone.replace(/\D/g, '')}?text=Hello%20${encodeURIComponent(l.tenantName)},%20this%20is%20V.%20RAMANA%20from%20The%20Bangalore%20Properties." target="_blank" class="nav-btn" style="background: rgba(37, 211, 102, 0.15); color: #25D366; border: 1px solid #25D366; font-size: 0.78rem; padding: 0.35rem 0.6rem; white-space: nowrap; flex-shrink: 0;">
+                <a href="https://wa.me/${encodeURIComponent(sanitizePhone(l.tenantPhone))}?text=Hello%20${encodeURIComponent(l.tenantName || '')},%20this%20is%20V.%20RAMANA%20from%20The%20Bangalore%20Properties." target="_blank" class="nav-btn" style="background: rgba(37, 211, 102, 0.15); color: #25D366; border: 1px solid #25D366; font-size: 0.78rem; padding: 0.35rem 0.6rem; white-space: nowrap; flex-shrink: 0;">
                   <i class="fa-brands fa-whatsapp"></i> WhatsApp
                 </a>
 
-                <select class="lead-status-select" data-lead-id="${l.id}" style="flex: 1; min-width: 0; font-size: 0.78rem;">
+                <select class="lead-status-select" data-lead-id="${escapeAttr(l.id)}" style="flex: 1; min-width: 0; font-size: 0.78rem;">
                   <option value="New" ${l.status === 'New' ? 'selected' : ''}>🔴 New</option>
                   <option value="Contacted" ${l.status === 'Contacted' ? 'selected' : ''}>🟡 Contacted</option>
                   <option value="Scheduled" ${l.status === 'Scheduled' ? 'selected' : ''}>🔵 Scheduled</option>
@@ -933,40 +934,40 @@ function renderAdminTabContent(tab, props, leads, c, totalRent, verifiedCount) {
           <div class="responsive-form-row">
             <div class="input-field-group">
               <label>Proprietor Name</label>
-              <input type="text" id="set-proprietor" value="${c.proprietor}" required />
+              <input type="text" id="set-proprietor" value="${escapeAttr(c.proprietor)}" required />
             </div>
 
             <div class="input-field-group">
               <label>Role / Title</label>
-              <input type="text" id="set-role" value="${c.role}" required />
+              <input type="text" id="set-role" value="${escapeAttr(c.role)}" required />
             </div>
           </div>
 
           <div class="responsive-form-row">
             <div class="input-field-group">
               <label>Contact Phone Number</label>
-              <input type="tel" id="set-phone" value="${c.phone}" required />
+              <input type="tel" id="set-phone" value="${escapeAttr(c.phone)}" required />
             </div>
 
             <div class="input-field-group">
               <label>WhatsApp Number</label>
-              <input type="tel" id="set-whatsapp" value="${c.whatsapp}" required />
+              <input type="tel" id="set-whatsapp" value="${escapeAttr(c.whatsapp)}" required />
             </div>
           </div>
 
           <div class="input-field-group">
             <label>Business Email</label>
-            <input type="email" id="set-email" value="${c.email}" required />
+            <input type="email" id="set-email" value="${escapeAttr(c.email)}" required />
           </div>
 
           <div class="input-field-group">
             <label>Office Address</label>
-            <textarea id="set-address" rows="2" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);" required>${c.address}</textarea>
+            <textarea id="set-address" rows="2" style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);" required>${sanitizeHTML(c.address)}</textarea>
           </div>
 
           <div class="input-field-group">
             <label>Business Slogan</label>
-            <input type="text" id="set-slogan" value="${c.slogan}" required />
+            <input type="text" id="set-slogan" value="${escapeAttr(c.slogan)}" required />
           </div>
 
           <button type="submit" class="nav-btn nav-btn-primary" style="justify-content: center; padding: 0.9rem; font-size: 1rem;">

@@ -4,14 +4,14 @@ const API_BASE = '/api';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('tbp_admin_token') || '';
-  const adminSecret = 'tbp_neon_super_admin_secret_key_2026_x89a';
-
-  return {
-    'Content-Type': 'application/json',
-    'x-admin-token': token,
-    'x-admin-key': adminSecret,
-    'Authorization': token ? `Bearer ${token}` : `Bearer ${adminSecret}`
+  const headers = {
+    'Content-Type': 'application/json'
   };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+    headers['x-admin-token'] = token;
+  }
+  return headers;
 }
 
 export const api = {

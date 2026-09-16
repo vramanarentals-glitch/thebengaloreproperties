@@ -61,9 +61,9 @@ class AppState {
     };
     this.contactInfo = savedContactInfo ? JSON.parse(savedContactInfo) : defaultContactInfo;
 
-    // Invalidate legacy admin sessions from old password era
+    // Invalidate legacy admin sessions
     if (typeof localStorage !== 'undefined') {
-      if (localStorage.getItem('tbp_admin_pw_version') !== '2026_ramana@123_v5_strict') {
+      if (localStorage.getItem('tbp_admin_pw_version') !== '2026_auth_v6_secure') {
         localStorage.removeItem('tbp_admin_auth');
         localStorage.removeItem('tbp_admin_token');
         try {
@@ -72,7 +72,7 @@ class AppState {
             localStorage.removeItem('tbp_user');
           }
         } catch (e) {}
-        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123_v5_strict');
+        localStorage.setItem('tbp_admin_pw_version', '2026_auth_v6_secure');
       }
     }
 
@@ -497,7 +497,7 @@ class AppState {
     // Explicitly reject old legacy password in all variations
     const isLegacyPass = /^ramana[\s_-]*rentals$/i.test(cleanPass) || cleanPass.toLowerCase().includes('ramana rentals') || cleanPass.toLowerCase().replace(/\s+/g, '') === 'ramanarentals';
     if (isLegacyPass) {
-      return { success: false, message: 'Access Denied: The old password "ramana rentals" has been permanently removed. Please use ramana@123.' };
+      return { success: false, message: 'Access Denied: Invalid credentials or deprecated password format.' };
     }
 
     const res = await api.loginUser(cleanEmail, cleanPass);
@@ -508,7 +508,7 @@ class AppState {
       
       if (res.isAdmin) {
         localStorage.setItem('tbp_admin_auth', 'true');
-        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123_v5_strict');
+        localStorage.setItem('tbp_admin_pw_version', '2026_auth_v6_secure');
         if (res.token) {
           localStorage.setItem('tbp_admin_token', res.token);
         }
@@ -521,30 +521,7 @@ class AppState {
       return res;
     }
 
-    // Static / Offline fallback (for GitHub Pages when backend API is unreachable)
-    if (!res || !res.success) {
-      if (cleanEmail === 'vramanarentals@gmail.com' && cleanPass === 'ramana@123') {
-        const adminSession = {
-          id: 'usr-admin',
-          name: 'V. RAMANA (Proprietor)',
-          email: 'vramanarentals@gmail.com',
-          provider: 'Admin Account',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=VRamana',
-          isAdmin: true
-        };
-        this.currentUser = adminSession;
-        this.isAdminLoggedIn = true;
-        localStorage.setItem('tbp_user', JSON.stringify(adminSession));
-        localStorage.setItem('tbp_admin_auth', 'true');
-        localStorage.setItem('tbp_admin_pw_version', '2026_ramana@123_v5_strict');
-        localStorage.setItem('tbp_admin_token', 'tbp_offline_admin_token_2026');
-        this.closeModal();
-        this.notify();
-        return { success: true, user: adminSession, isAdmin: true, token: 'tbp_offline_admin_token_2026' };
-      }
-    }
-
-    return res || { success: false, message: 'Invalid credentials.' };
+    return res || { success: false, message: 'Invalid credentials or authentication failed.' };
   }
 
   // Admin Portal Methods
