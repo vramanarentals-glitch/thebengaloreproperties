@@ -16,8 +16,26 @@
   "devDependencies": {
     "gh-pages": "^6.3.0"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "the-bangalore-properties",
+    "the-bengaluru-properties",
+    "bangalore-properties",
+    "bengaluru-properties",
+    "v-ramana-rentals",
+    "vramanarentals",
+    "thebengaloreproperties",
+    "bangalore-house-rent",
+    "bengaluru-flat-rent",
+    "1bhk-rent-bangalore",
+    "2bhk-rent-bengaluru",
+    "3bhk-apartment-bangalore",
+    "commercial-space-rent-bangalore",
+    "office-space-rent-murugeshpalaya",
+    "godown-rent-bangalore",
+    "0-brokerage-rentals-bangalore"
+  ],
+  "author": "V. RAMANA (The Bangalore Properties)",
+  "homepage": "https://thebangaloreproperties.com",
   "license": "ISC",
   "type": "module",
   "dependencies": {

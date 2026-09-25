@@ -1,0 +1,24 @@
+# robots.txt for The Bangalore Properties
+# Production URL: https://thebangaloreproperties.com
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Disallow crawling of internal query states that could cause duplicate content loops
+Disallow: /?*tab=
+Disallow: /*?*token=
+
+# Explicit Googlebot, Bingbot & Search Engine Bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+# Canonical XML Sitemap
+Sitemap: https://thebangaloreproperties.com/sitemap.xml
+Host: https://thebangaloreproperties.com

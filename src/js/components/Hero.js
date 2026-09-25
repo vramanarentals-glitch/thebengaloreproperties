@@ -12,13 +12,13 @@ export function renderHero() {
     <section class="hero-section">
       <div class="hero-content">
         <div class="hero-badge" style="background: linear-gradient(90deg, rgba(245,158,11,0.2), rgba(16,185,129,0.2)); border: 1px solid rgba(245,158,11,0.4); color: var(--text-primary); font-weight: 700;">
-          <i class="fa-solid fa-crown" style="color: #f59e0b;"></i> ${sanitizeHTML(c.slogan)}
+          <i class="fa-solid fa-crown" style="color: #f59e0b;"></i> THE BANGALORE PROPERTIES &bull; ${sanitizeHTML(c.slogan)}
         </div>
         <h1 class="hero-title">
-          Discover Verified <span>Rental Properties</span> in Bangalore
+          The Bangalore Properties &mdash; <span>Verified Rental Homes</span> & Offices in Bengaluru
         </h1>
         <p class="hero-subtitle" style="margin-bottom: 1.25rem;">
-          Directly managed by <strong>${sanitizeHTML(c.proprietor)} (${sanitizeHTML(c.role)})</strong> — Exclusively featuring verified Residential Rentals, Office Space Rentals & Godown Space Rentals across Bengaluru.
+          Directly managed by Proprietor <strong>${sanitizeHTML(c.proprietor)} (${sanitizeHTML(c.role)})</strong> — Verified 1BHK, 2BHK, 3BHK flats, luxury houses, commercial office spaces & godowns for rent across Bengaluru with 0% brokerage options.
         </p>
 
         <!-- Hero Quick Place Search Bar -->

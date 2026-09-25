@@ -58,12 +58,48 @@ function checkAdminRoute() {
   }
 }
 
+function applyUrlParams() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const searchVal = params.get('search') || params.get('q');
+    const localityVal = params.get('locality');
+    const bhkVal = params.get('bhk');
+    const zeroBrokVal = params.get('zeroBrokerage');
+
+    let changed = false;
+    if (searchVal) {
+      state.filters.searchQuery = searchVal;
+      changed = true;
+    }
+    if (localityVal) {
+      state.filters.locality = localityVal;
+      changed = true;
+    }
+    if (bhkVal) {
+      state.filters.bhk = bhkVal;
+      changed = true;
+    }
+    if (zeroBrokVal === 'true' || zeroBrokVal === '1') {
+      state.filters.zeroBrokerageOnly = true;
+      changed = true;
+    }
+    if (changed) {
+      state.applyFilters();
+    }
+  } catch (e) {
+    console.warn('Error applying URL parameters:', e);
+  }
+}
+
 function init() {
   // Set initial theme attribute
   document.documentElement.setAttribute('data-theme', state.theme);
 
   // Check if route matches /admin
   checkAdminRoute();
+
+  // Apply SEO deep-link query parameters
+  applyUrlParams();
 
   // Listen for browser back/forward navigation or hash changes
   window.addEventListener('popstate', checkAdminRoute);
