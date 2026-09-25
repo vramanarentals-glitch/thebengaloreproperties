@@ -35,7 +35,7 @@
     "0-brokerage-rentals-bangalore"
   ],
   "author": "V. RAMANA (The Bangalore Properties)",
-  "homepage": "https://thebangaloreproperties.com",
+  "homepage": "https://thebengaloreproperties.vercel.app",
   "license": "ISC",
   "type": "module",
   "dependencies": {

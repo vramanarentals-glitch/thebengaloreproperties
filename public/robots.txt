@@ -1,5 +1,5 @@
 # robots.txt for The Bangalore Properties
-# Production URL: https://thebangaloreproperties.com
+# Primary Vercel URL: https://thebengaloreproperties.vercel.app
 
 User-agent: *
 Allow: /
@@ -20,5 +20,5 @@ User-agent: Googlebot-Image
 Allow: /
 
 # Canonical XML Sitemap
-Sitemap: https://thebangaloreproperties.com/sitemap.xml
-Host: https://thebangaloreproperties.com
+Sitemap: https://thebengaloreproperties.vercel.app/sitemap.xml
+Host: https://thebengaloreproperties.vercel.app
