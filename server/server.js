@@ -590,6 +590,8 @@ app.delete('/api/properties/:id', requireAdmin, async (req, res) => {
 // Reset properties to default (Clear all properties)
 app.post('/api/properties/reset', requireAdmin, async (req, res) => {
   try {
+    // Remove uploaded image records before their parent property records.
+    await query('DELETE FROM property_images;');
     await query('DELETE FROM properties;');
     res.json([]);
   } catch (err) {

@@ -119,6 +119,22 @@ class AppState {
           this.initFromDb();
         }
       });
+
+      // Reset this browser's uploaded data and refresh the page after one minute.
+      window.setTimeout(async () => {
+        try {
+          localStorage.removeItem('tbp_properties');
+          localStorage.removeItem('tbp_deleted_ids');
+          localStorage.removeItem('tbp_leads');
+          localStorage.removeItem('tbp_favorites');
+
+          if (localStorage.getItem('tbp_admin_token')) {
+            await api.resetProperties();
+          }
+        } finally {
+          window.location.reload();
+        }
+      }, 60 * 1000);
     }
   }
 
