@@ -3028,3 +3028,43 @@ footer {
 .edit-modal-card {
   animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+.maintenance-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: radial-gradient(circle at top, rgba(16, 185, 129, 0.16), transparent 45%), var(--bg-main);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.maintenance-panel {
+  width: min(100%, 34rem);
+  padding: 3rem 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+}
+
+.maintenance-label {
+  margin: 0 0 1rem;
+  color: var(--accent-emerald);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.maintenance-panel h1 {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  line-height: 1.05;
+}
+
+.maintenance-panel p:last-child {
+  margin: 1rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
